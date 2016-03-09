@@ -142,12 +142,12 @@ detectArduino()
 # Connect to ESC 1
 motor1 = Servo(servoPin1)
 motor1.writeMicroseconds(1500)
-sleep(1)
+arduino.delay(1000)
 
 # Connect to ESC 2
 motor2 = Servo(servoPin2)                
 motor2.writeMicroseconds(1500)
-sleep(1)
+arduino.delay(1000)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 #Global Variables for Main Loop

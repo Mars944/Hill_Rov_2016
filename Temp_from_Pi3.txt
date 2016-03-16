@@ -1,2 +1,0 @@
-This file is going to be temporarily added by Dylan Spector
-For the sole purpose of learning the git terminal commands on Raspi3.

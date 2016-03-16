@@ -12,7 +12,7 @@ def changeInterval(x, in_min, in_max, out_min, out_max):     # Identical to Ardu
         return int( (x-in_min) * (out_max-out_min) // (in_max-in_min) + out_min )
 """
 
-
+1
 def detectArduino():
         # Create TextBox object to display connection status
         connectingText = TextBox(40, display_width/2, display_length/2)
@@ -33,28 +33,28 @@ def detectArduino():
                         arduino = ArduinoApi(connection = connection)
                         connected = True
                         screen.fill(BLACK)
-                        connectingText.print(screen, "Arduino Connected!")
+                        connectingText.Print(screen, "Arduino Connected!")
                         pygame.display.update()
                 except:
                         if failed == 0:
-                                connectingText.print(screen, "Failed to connect to Arduino")
+                                connectingText.Print(screen, "Failed to connect to Arduino")
                                 pygame.display.update()
                                 sleep(1)
                                 screen.fill(BLACK)
                                 failed += 1
                         else:
                                 screen.fill(BLACK)
-                                connectingText.print(screen, "Attempting to Connect to Arduino.")
+                                connectingText.Print(screen, "Attempting to Connect to Arduino.")
                                 pygame.display.update()
                                 sleep(.5)
                                         
                                 screen.fill(BLACK)
-                                connectingText.print(screen, "Attempting to Connect to Arduino..")
+                                connectingText.Print(screen, "Attempting to Connect to Arduino..")
                                 pygame.display.update()
                                 sleep(.5)
 
                                 screen.fill(BLACK)
-                                connectingText.print(screen, "Attempting to Connect to Arduino...")
+                                connectingText.Print(screen, "Attempting to Connect to Arduino...")
                                 pygame.display.update()
                                 sleep(.5)
 
@@ -74,7 +74,7 @@ class TextBox:  # Creates an object to work similarly to a text box.
                 self.line_height = self.size*3/4
                 self.font = pygame.font.Font(None, self.size)
 
-        def print(self, screen, textString):
+        def Print(self, screen, textString):
                 textBitmap = self.font.render(textString, True, self.color)
                 screen.blit(textBitmap, [self.x, self.y])
 
@@ -120,7 +120,7 @@ display_length = 650
 clock = pygame.time.Clock() # Will be used for FPS
 
 # Window's Icon
-icon = pygame.image.load('resources\Hill_Logo.png')
+icon = pygame.image.load('resources/Hill_Logo.png')
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Create Display Window
@@ -199,8 +199,8 @@ while running:
         screen.blit(camFeed, (0,0))
 
         # Display Titles
-        motorTitleText.print(screen, "Motor Values:")
-        sensTitleText.print(screen, "Sensor Values:")
+        motorTitleText.Print(screen, "Motor Values:")
+        sensTitleText.Print(screen, "Sensor Values:")
 
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # For every attatched Joystick:
@@ -282,19 +282,19 @@ while running:
                 if throttle == 0:
                         valAxesText.changeColor(RED)
 
-                valAxesText.print(screen, "Throttle: " + str(throttle))
+                valAxesText.Print(screen, "Throttle: " + str(throttle))
                 valAxesText.newLine()
 
-                valAxesText.print(screen, "Motor 1: " + str(M1Value))
+                valAxesText.Print(screen, "Motor 1: " + str(M1Value))
                 valAxesText.newLine()
 
-                valAxesText.print(screen, "Motor 2: " + str(M2Value))
+                valAxesText.Print(screen, "Motor 2: " + str(M2Value))
                 valAxesText.newLine()
 
-                valAxesText.print(screen, "Motor 3: " + str(M3Value))
+                valAxesText.Print(screen, "Motor 3: " + str(M3Value))
                 valAxesText.newLine()
 
-                valAxesText.print(screen, "Motor 4: " + str(M4Value))
+                valAxesText.Print(screen, "Motor 4: " + str(M4Value))
                 valAxesText.newLine()
 
                 pygame.display.update()

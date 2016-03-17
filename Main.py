@@ -12,7 +12,7 @@ def changeInterval(x, in_min, in_max, out_min, out_max):     # Identical to Ardu
         return int( (x-in_min) * (out_max-out_min) // (in_max-in_min) + out_min )
 """
 
-1
+
 def detectArduino():
         # Create TextBox object to display connection status
         connectingText = TextBox(40, display_width/2, display_length/2)
@@ -29,7 +29,7 @@ def detectArduino():
                                         quit()
                                        
                 try:
-                        connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected Arduino (Connected to bottom left USB Port) and sets baudrate to 9600
+                        connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected Arduino (Connected to bottom left USB Port) and sets baudrate to 115200
                         arduino = ArduinoApi(connection = connection)
                         connected = True
                         screen.fill(BLACK)

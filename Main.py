@@ -179,80 +179,82 @@ while running:
 
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # For every attatched Joystick:
-        if joystick_count != 0:
-                if arduinoConnected:
-                        for i in range(joystick_count):
-                                joystick = pygame.joystick.Joystick(i)
-                                joystick.init()
-                                """"""""""""""""""""""""
+        if joystick_count != 0 and arduinoConnected:
+                for i in range(joystick_count):
+                        joystick = pygame.joystick.Joystick(i)
+                        joystick.init()
+                        """"""""""""""""""""""""
+                        
+                        numAxes = joystick.get_numaxes() # Gets number of axis
+
+                        # Converts axis values to proper interval and sends them to Motors.
+                        for a in range( numAxes-1 ):
+                                    
+                                # Finds throttle and assigns valAxis its value.
+                                throttle = changeInterval(-joystick.get_axis(3), -1, 1, 0, 100)/100 # Remaps Throttle's interval from [-1, 1] to [0, 100]%
+
+                                """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+                                #Band-Aid to fix Throttle Defaulting at 50.
+
+                                if notMoved:
+                                        if throttle != .5:
+                                                notMoved = False
+                                        else:
+                                                throttle = 0
+                                                
+                                """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+                                # Updating Motor Values
                                 
-                                numAxes = joystick.get_numaxes() # Gets number of axis
+                                # Left-Right
+                                if a == 0:
+                                      pass #temp  
 
-                                # Converts axis values to proper interval and sends them to Motors.
-                                for a in range( numAxes-1 ):
-                                            
-                                        # Finds throttle and assigns valAxis its value.
-                                        throttle = changeInterval(-joystick.get_axis(3), -1, 1, 0, 100)/100 # Remaps Throttle's interval from [-1, 1] to [0, 100]%
+                                #Forward-Backward
+                                elif a == 1:
+                                        # Write valAxis (in mS), to the Motor Servos
+                                        valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500-(400*throttle), 1500+(400*throttle))  # Maps Axis from [-1,1] to [1100, 1900] (Given Full Throttle)
 
-                                        """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-                                        #Band-Aid to fix Throttle Defaulting at 50.
+                                        M1Value = valAxis
+                                        M2Value = valAxis
 
-                                        if notMoved:
-                                                if throttle != .5:
-                                                        notMoved = False
-                                                else:
-                                                        throttle = 0
-                                                        
-                                        """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-                                        # Updating Motor Values
-                                        
-                                        # Left-Right
-                                        if a == 0:
-                                              pass #temp  
+                                # Yaw (now treated as a modifier)
+                                elif a == 2:
+                                        yawChange = changeInterval(joystick.get_axis(a), -1, 1, -50, 50)/100 # Remaps Yaw's interval from [-1, 1] to [-50, 50]%
 
-                                        #Forward-Backward
-                                        elif a == 1:
-                                                # Write valAxis (in mS), to the Motor Servos
-                                                valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500-(400*throttle), 1500+(400*throttle))  # Maps Axis from [-1,1] to [1100, 1900] (Given Full Throttle)
+                                        # Backwards yaw is all fucked up! 
+                                        if yawChange != 25: #Not Neccessary, but it saves the program from running the following code.
+                                                if yawChange > 0: 
+                                                        if M1Value < 1500:   # If in Reverse (Broken)
+                                                                M1Value = M1Value - (400*throttle*yawChange)
+                                                        elif M1Value > 1500: # If Forward
+                                                                M1Value = M1Value + (400*throttle*yawChange)
+                                                        else:                # If not moving forward/Backward
+                                                                M1Value = 1500+200*throttle/100
+                                                                M2Value = 1500-200*throttle/100
+                                                elif yawChange < 0:          
+                                                        if M2Value < 1500:   # If in Reverse (Broken)
+                                                                M2Value = M2Value + (400*throttle*yawChange)
+                                                        elif M2Value > 1500: # If Forward
+                                                                M2Value = M2Value - (400*throttle*yawChange)
+                                                        else:                # If not moving forward/Backward
+                                                                 M1Value = 1500-200*throttle
+                                                                 M2Value = 1500+200*throttle
+                        # Hat Button                        
+                        for i in range(hat_count):
+                                hat = joystick.gethat(i)
 
-                                                M1Value = valAxis
-                                                M2Value = valAxis
-
-                                        # Yaw (now treated as a modifier)
-                                        elif a == 2:
-                                                yawChange = changeInterval(joystick.get_axis(a), -1, 1, -50, 50)/100 # Remaps Yaw's interval from [-1, 1] to [-50, 50]%
-
-                                                # Backwards yaw is all fucked up! 
-                                                if yawChange != 25: #Not Neccessary, but it saves the program from running the following code.
-                                                        if yawChange > 0: 
-                                                                if M1Value < 1500:   # If in Reverse (Broken)
-                                                                        M1Value = M1Value - (400*throttle*yawChange)
-                                                                elif M1Value > 1500: # If Forward
-                                                                        M1Value = M1Value + (400*throttle*yawChange)
-                                                                else:                # If not moving forward/Backward
-                                                                        M1Value = 1500+200*throttle/100
-                                                                        M2Value = 1500-200*throttle/100
-                                                        elif yawChange < 0:          
-                                                                if M2Value < 1500:   # If in Reverse (Broken)
-                                                                        M2Value = M2Value + (400*throttle*yawChange)
-                                                                elif M2Value > 1500: # If Forward
-                                                                        M2Value = M2Value - (400*throttle*yawChange)
-                                                                else:                # If not moving forward/Backward
-                                                                         M1Value = 1500-200*throttle
-                                                                         M2Value = 1500+200*throttle
-                                # Hat Button                        
-                                for i in range(hat_count):
-                                        hat = joystick.gethat(i)
-
-                                        # Up/Down
-                                        if hat == (0, 1):
-                                                M3Value = 1500+(400*throttle)
-                                                M4Value = 1500+(400*throttle)
-                                        elif hat == (0, -1):
-                                                M3Value = 1500-(400*throttle)
-                                                M4Value = 1500-(400*throttle)
+                                # Up/Down
+                                if hat == (0, 1):
+                                        M3Value = 1500+(400*throttle)
+                                        M4Value = 1500+(400*throttle)
+                                elif hat == (0, -1):
+                                        M3Value = 1500-(400*throttle)
+                                        M4Value = 1500-(400*throttle)
+                                                
+# Tries to connect to unconnected hardware
+        else:
                 # If Arduino is not connected, tries to connect (and connects to ESC's).
-                else:
+                if not arduinoConnected:
                         try:
                                 connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected Arduino (Connected to bottom left USB Port) and sets baudrate to 115200
                                 arduino = ArduinoApi(connection = connection)
@@ -280,13 +282,12 @@ while running:
                                 print("ESC4 Connected!")
                         except:
                                 print("Arduino Failed to Connect")
-                                
-# Tries to connect to most unconnected hardware      
-        # If no Joysticks are connected, tries to connect.
-        else:
-                joystick_count = pygame.joystick.get_count() # Number of connected joysticks (should = 1)
-                if joystick_count != 0:
-                        hat__count = joystick.get_numhats()  # Number of hats found (should = 1)
+                              
+                # If no Joysticks are connected, tries to connect.
+                if joystick_count == 0:
+                        joystick_count = pygame.joystick.get_count() # Number of connected joysticks (should = 1)
+                        if joystick_count != 0:
+                                hat__count = joystick.get_numhats()  # Number of hats found (should = 1)
 
         # Attempt to Connect to Camera
         if not camConnected:
@@ -310,7 +311,7 @@ while running:
         valAxesText.newLine()
 
         # Display Value of all motors
-        if arduinoConnected:
+        if joystick_count != 0 and arduinoConnected:
                 valAxesText.Print(screen, "Motor 1: " + str(M1Value))
                 valAxesText.newLine()
 
@@ -323,10 +324,17 @@ while running:
                 valAxesText.Print(screen, "Motor 4: " + str(M4Value))
                 valAxesText.newLine()
         else:
-                valAxesText.changeColor(RED)
-                valAxesText.Print(screen, "Arduino is DISCONNECTED")
-                valAxesText.newLine()
-                valAxesText.changeColor(BLACK)
+                if not arduinoConnected:
+                        valAxesText.changeColor(RED)
+                        valAxesText.Print(screen, "Arduino is DISCONNECTED")
+                        valAxesText.newLine()
+                        valAxesText.changeColor(BLACK)
+                if joystick_count == 0:
+                        valAxesText.changeColor(RED)
+                        valAxesText.Print(screen, "Joystick is DISCONNECTED")
+                        valAxesText.newLine()
+                        valAxesText.changeColor(BLACK)
+                        
 
         pygame.display.update()
         clock.tick(60) # Sets FPS = 60

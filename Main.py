@@ -75,10 +75,11 @@ screen = pygame.display.set_mode((display_width, display_length)) # Creates Wind
 pygame.display.set_caption("The Hill ROV Companion App")          # Sets Window's Title
 
 # Attempts to connect to Camera
+camConnected = True
 try:
         cam = pygame.camera.Camera("/dev/video0", ((640, 480))) # PSEYE Default Dimesnsions: (640,480)
         cam.start()
-        print("Camera Conencted!")
+        print("Camera Connected!")
 except:
         print("Camera Failed to Connect")
         camConnected = False
@@ -127,9 +128,11 @@ if arduinoConnected:
 #Global Variables for Main Loop
 
 # TextBox Objects
-motorTitleText = TextBox(40, 700, 50) # Title: "Joystick"
-sensTitleText = TextBox(40, 0, 481)   # Title: "Sensor"
-valAxesText = TextBox(30, 700, 90)    # Data: Motor Values
+motorTitleText = TextBox(40, 700, 50)     # Title: "Joystick"
+sensTitleText = TextBox(40, 10, 481)      # Title: "Sensor"
+valAxesText = TextBox(30, 700, 90)        # Data: Motor Values
+camDisconnectedText = TextBox(40, 10, 10) # Warning: Warns that Camera is Disconnected
+camDisconnectedText.changeColor(RED)
 
 running = True   # Checks to see if the program has been quit
 notMoved = True  # Band-Aid for throttle. Used to see if the throttle has been moved from 0
@@ -164,10 +167,11 @@ while running:
         valAxesText.reset() # Resets valAxesText
         screen.fill(GRAY)   # Resets Screen to gray
 
-        # Display Video Feed
+        # Attemp to Display Video Feed
         if camConnected:
-                camFeed = cam.get_image() 
-                screen.blit(camFeed, (0,0))
+                screen.blit(cam.get_image(), (0,0))
+        else:
+                camDisconnectedText.Print(screen, "CAMERA DISCONNECTED.")
 
         # Display Titles
         motorTitleText.Print(screen, "Motor Values:")
@@ -275,13 +279,25 @@ while running:
                                 sleep(1)
                                 print("ESC4 Connected!")
                         except:
-                                print("Arduino Failed to Connect") 
-
+                                print("Arduino Failed to Connect")
+                                
+# Tries to connect to most unconnected hardware      
         # If no Joysticks are connected, tries to connect.
         else:
                 joystick_count = pygame.joystick.get_count() # Number of connected joysticks (should = 1)
                 if joystick_count != 0:
                         hat__count = joystick.get_numhats()  # Number of hats found (should = 1)
+
+        # Attempt to Connect to Camera
+        if not camConnected:
+                try:
+                        cam = pygame.camera.Camera("/dev/video0", ((640, 480))) # PSEYE Default Dimensions: (640,480)
+                        cam.start()
+                        print("Camera Connected!")
+                        camConnected = True
+                except:
+                        pass
+                        
                         
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Update GUI        

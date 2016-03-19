@@ -1,3 +1,19 @@
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Index:
+
+# 1. Imports
+# 2. Global Classes
+# 3. Pygame Initializations
+# 4. Define GUI Variables
+# 5. Create Display Window
+# 6. Connect to Hardware
+# 7. Global Variables for Main Loop
+# 8. Main Loop
+# 9. Quit
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""        
+# Imports
+
 import pygame                                               # Used in conjunction with USB Joystick (Could also be used to create a UI)                             
 import pygame.camera                                        # Experimental 
 from nanpy import (ArduinoApi, SerialManager, Servo, wire)  # Arduino Api & Libraries for slavery
@@ -125,12 +141,12 @@ if arduinoConnected:
                 print("ESC4 Connected!")
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-#Global Variables for Main Loop
+# Global Variables for Main Loop
 
 # TextBox Objects
-motorTitleText = TextBox(40, 700, 50)     # Title: "Joystick"
-sensTitleText = TextBox(40, 10, 481)      # Title: "Sensor"
-valAxesText = TextBox(30, 700, 90)        # Data: Motor Values
+motorTitleText = TextBox(40, 700, 50)     # Title: "Motor Values"
+sensTitleText = TextBox(40, 10, 481)      # Title: "Sensor Values"
+valMotorText = TextBox(30, 700, 90)       # Data: Motor Values
 camDisconnectedText = TextBox(40, 10, 10) # Warning: Warns that Camera is Disconnected
 camDisconnectedText.changeColor(RED)
 
@@ -138,9 +154,9 @@ running = True   # Checks to see if the program has been quit
 notMoved = True  # Band-Aid for throttle. Used to see if the throttle has been moved from 0
 
 # Count Variables (Will probably be removed on final version)
-joystick_count = pygame.joystick.get_count() # Number of connected joysticks (should = 1)
+joystick_count = pygame.joystick.get_count()  # Number of connected joysticks (should = 1)
 if joystick_count != 0:
-        hat__count = joystick.get_numhats()          # Number of hats found (should = 1)
+        hat__count = joystick.get_numhats()   # Number of hats found (should = 1)
 
 # Define throttle to start at 0
 throttle = 0
@@ -164,7 +180,7 @@ while running:
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Reset Display to Default (gray background, Titles, and Camera Feed)
 
-        valAxesText.reset() # Resets valAxesText
+        valMotorText.reset() # Resets valMotorText
         screen.fill(GRAY)   # Resets Screen to gray
 
         # Attemp to Display Video Feed
@@ -305,35 +321,35 @@ while running:
 
         # Sets throttle text's color to Red if at 0.
         if throttle == 0:
-                valAxesText.changeColor(RED)
+                valMotorsText.changeColor(RED)
 
-        valAxesText.Print(screen, "Throttle: " + str(throttle))
-        valAxesText.newLine()
+        valMotorsText.Print(screen, "Throttle: " + str(throttle))
+        valMotorsText.newLine()
 
         # Display Value of all motors
         if joystick_count != 0 and arduinoConnected:
-                valAxesText.Print(screen, "Motor 1: " + str(M1Value))
-                valAxesText.newLine()
+                valMotorsText.Print(screen, "Motor 1: " + str(M1Value))
+                valMotorsText.newLine()
 
-                valAxesText.Print(screen, "Motor 2: " + str(M2Value))
-                valAxesText.newLine()
+                valMotorsText.Print(screen, "Motor 2: " + str(M2Value))
+                valMotorsText.newLine()
                 
-                valAxesText.Print(screen, "Motor 3: " + str(M3Value))
-                valAxesText.newLine()
+                valMotorsText.Print(screen, "Motor 3: " + str(M3Value))
+                valMotorsText.newLine()
 
-                valAxesText.Print(screen, "Motor 4: " + str(M4Value))
-                valAxesText.newLine()
+                valMotorsText.Print(screen, "Motor 4: " + str(M4Value))
+                valMotorsText.newLine()
         else:
                 if not arduinoConnected:
-                        valAxesText.changeColor(RED)
-                        valAxesText.Print(screen, "Arduino is DISCONNECTED")
-                        valAxesText.newLine()
-                        valAxesText.changeColor(BLACK)
+                        valMotorsText.changeColor(RED)
+                        valMotorsText.Print(screen, "Arduino is DISCONNECTED")
+                        valMotorsText.newLine()
+                        valMotorsText.changeColor(BLACK)
                 if joystick_count == 0:
-                        valAxesText.changeColor(RED)
-                        valAxesText.Print(screen, "Joystick is DISCONNECTED")
-                        valAxesText.newLine()
-                        valAxesText.changeColor(BLACK)
+                        valMotorsText.changeColor(RED)
+                        valMotorsText.Print(screen, "Joystick is DISCONNECTED")
+                        valMotorsText.newLine()
+                        valMotorsText.changeColor(BLACK)
                         
 
         pygame.display.update()
@@ -369,5 +385,7 @@ while running:
                         motor4.writeMicroseconds(max(M4Value, motorMin)) 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Quit
+
 pygame.quit()
 quit()

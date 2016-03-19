@@ -1,0 +1,13 @@
+Arm gamepad == Sony PLAYSTATION(R)3 Controller
+
+gamepads are treated as joysticks.
+
+Button Mapping:
+- Up D-Pad == Button 4
+- Right D-Pad == Button 5
+- Down D-Pad == Button 6
+- Left D-Pad == Button 7
+- Left Bumper == Button 8
+- Right Bumper == Button 9
+- Left Trigger == Button 10
+- Right Trigger == Button 11

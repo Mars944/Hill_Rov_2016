@@ -146,7 +146,7 @@ if arduinoConnected:
 # TextBox Objects
 motorTitleText = TextBox(40, 700, 50)     # Title: "Motor Values"
 sensTitleText = TextBox(40, 10, 481)      # Title: "Sensor Values"
-valMotorText = TextBox(30, 700, 90)       # Data: Motor Values
+valMotorsText = TextBox(30, 700, 90)       # Data: Motor Values
 camDisconnectedText = TextBox(40, 10, 10) # Warning: Warns that Camera is Disconnected
 camDisconnectedText.changeColor(RED)
 
@@ -154,9 +154,7 @@ running = True   # Checks to see if the program has been quit
 notMoved = True  # Band-Aid for throttle. Used to see if the throttle has been moved from 0
 
 # Count Variables (Will probably be removed on final version)
-joystick_count = pygame.joystick.get_count()  # Number of connected joysticks (should = 1)
-if joystick_count != 0:
-        hat__count = joystick.get_numhats()   # Number of hats found (should = 1)
+joystick_count = pygame.joystick.get_count()  # Number of connected joysticks (should = 2) 
 
 # Define throttle to start at 0
 throttle = 0
@@ -180,7 +178,7 @@ while running:
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Reset Display to Default (gray background, Titles, and Camera Feed)
 
-        valMotorText.reset() # Resets valMotorText
+        valMotorsText.reset() # Resets valMotorText
         screen.fill(GRAY)   # Resets Screen to gray
 
         # Attemp to Display Video Feed
@@ -255,7 +253,7 @@ while running:
                                                         else:                # If not moving forward/Backward
                                                                  M1Value = 1500-200*throttle
                                                                  M2Value = 1500+200*throttle
-                        # Hat Button                        
+                        """# Hat Button                        
                         for i in range(hat_count):
                                 hat = joystick.gethat(i)
 
@@ -265,7 +263,7 @@ while running:
                                         M4Value = 1500+(400*throttle)
                                 elif hat == (0, -1):
                                         M3Value = 1500-(400*throttle)
-                                        M4Value = 1500-(400*throttle)
+                                        M4Value = 1500-(400*throttle)"""
                                                 
 # Tries to connect to unconnected hardware
         else:

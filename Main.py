@@ -177,9 +177,13 @@ for i in range(joystick_count):
 motorTitleText      =TextBox(40, 700, 50)  # Title: "Motor Values"
 sensTitleText       =TextBox(40, 10, 481)  # Title: "Sensor Values"
 armTitleText        =TextBox(40, 10, 400)  # Title: "Arm Movement:"
+gamepadReminderText =TextBox(20, 10, 423)  # Reminder: Reminds user to mash playstation button after reconnect
 valArmText          =TextBox(40, 170, 400) # Data: Arm Values
 valMotorsText       =TextBox(30, 700, 90)  # Data: Motor Values
-camDisconnectedText =TextBox(40, 10, 10)   # Warning: Warns that Camera is Disconnected
+camDisconnectedText =TextBox(40, 10, 10)   # Disconnect: Warns that Camera is Disconnected
+
+# Changes Color of certain TextBoxs
+gamepadReminderText.changeColor(RED)
 camDisconnectedText.changeColor(RED)
 
 running = True   # Checks to see if the program is still running. Set False by quiting.
@@ -187,6 +191,19 @@ running = True   # Checks to see if the program is still running. Set False by q
 # Band-Aid for throttle. 
 notMoved = True  # Checks to see if throttle has been moved from 0.
 throttle = 0     # Define throttle to start at 0.
+
+# Used to check if gamepad has been disconnected.
+if gamepadConnected:
+        a23 = gamepad.get_axis(23)
+        a24 = gamepad.get_axis(24)
+        a25 = gamepad.get_axis(25)
+else:
+        a23 = 0
+        a24 = 0
+        a25 = 0
+
+
+checkCount = 0 # Counts to 50 to see if ps3 axes 23-25 are equal all 50 times.
 
 # Define Motor Values at default (in mS).
 M1Value = 1500
@@ -223,6 +240,7 @@ while running:
         motorTitleText.Print(screen, "Motor Values:")
         sensTitleText.Print(screen, "Sensor Values:")
         armTitleText.Print(screen, "Arm Values: ")
+        gamepadReminderText.Print(screen, "Mash <Playstation Button> after Reconnect!")
 
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Read from Gamepad if gamepad is connected
@@ -254,7 +272,23 @@ while running:
                         # Right Trigger
                         elif b == 11:
                                 pass
-                        
+
+                # Check motion tracker to see if controller is disconnected.
+                OGa23 = a23
+                OGa24 = a24
+                OGa25 = a25
+                
+                a23 = gamepad.get_axis(23)
+                a24 = gamepad.get_axis(24)
+                a25 = gamepad.get_axis(25)
+                
+                if OGa23==a23 and OGa24==a24 and OGa25==a25:
+                        checkCount += 1
+                else:
+                        checkCount = 0
+                if OGa23==a23 and OGa24==a24 and OGa25==a25 and checkCount == 100:
+                        gamepadConnected=False
+                        checkCount = 0
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Reads Joystick input if Joystick and Ardunio are both connected.
 

@@ -1,8 +1,8 @@
 Arm gamepad == Sony PLAYSTATION(R)3 Controller
 
-gamepads are treated as joysticks.
+(Note: gamepads are treated as joysticks.)
 
-Button Mapping:
+Gamepad Button Mapping:
 - Up D-Pad == Button 4
 - Right D-Pad == Button 5
 - Down D-Pad == Button 6
@@ -11,3 +11,12 @@ Button Mapping:
 - Right Bumper == Button 9
 - Left Trigger == Button 10
 - Right Trigger == Button 11
+--------------------------------------------------
+Joystick motors == Logitech... (name missing)
+
+Joystick Button Mapping:
+- Left-Right == Axis 0
+- Forward-Backward == Axis 1
+- Yaw == Axis 2
+- Throttle == Axis 3
+- (Hat Currently disabled)

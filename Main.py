@@ -3,13 +3,15 @@
 
 # 1. Imports
 # 2. Global Classes
-# 3. Pygame Initializations
-# 4. Define GUI Variables
-# 5. Create Display Window
-# 6. Connect to Hardware
-# 7. Global Variables for Main Loop
-# 8. Main Loop
-# 9. Quit
+# 3. Define GUI Variables
+# 4. Create Window
+# 5. Connect to Hardware
+# 6. Pygame Initializations
+# 7. Joystick/Gamepad Variables & Setup
+# 8. Global Variables for Main Loop
+# 9. Main Loop
+# 10. Quit
+# 11. Known Issues
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""        
 # Imports
@@ -58,13 +60,6 @@ class TextBox:  # Creates an object to work similarly to a text box.
                 self.x -= (10*multiplier)        
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Pygame Initializations
-
-pygame.init()                                # Initialize pygame
-pygame.joystick.init()                       # Initialize the Joystick library
-pygame.camera.init()                         # Initialize the Camera library
-  
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Define GUI Variables
 
 # Define Colors
@@ -84,7 +79,7 @@ clock = pygame.time.Clock() # Will be used for FPS
 icon = pygame.image.load('resources/Hill_Logo.png')
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Create Display Window
+# Create Window
 
 pygame.display.set_icon(icon)                                     # Sets Window's Icon
 screen = pygame.display.set_mode((display_width, display_length)) # Creates Window/screen
@@ -99,8 +94,9 @@ try:
 except:
         print("Camera Failed to Connect")
         camConnected = False
+        
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Connect to Hardware
+# Connect to Arduino
 
 # Attempts to connect to Arduino
 arduinoConnected = False
@@ -112,13 +108,13 @@ try:
 except:
         print("Arduino Failed to Connect")
 
-# Defines Hardware Pins
+# Define Motor Pins
 servoPin1 = 6
 servoPin2 = 9
 servoPin3 = 10
 servoPin4 = 11
 
-# Attempts to connect to ESC's if Arduino is connected
+# Connects to ESC's if Arduino is connected
 if arduinoConnected:
                 motor1 = Servo(servoPin1)
                 motor1.writeMicroseconds(1500)
@@ -141,25 +137,58 @@ if arduinoConnected:
                 print("ESC4 Connected!")
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Pygame Initializations
+
+pygame.init()                                # Initialize pygame
+pygame.joystick.init()                       # Initialize the Joystick library
+pygame.camera.init()                         # Initialize the Camera library
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Joystick/Gamepad Variables & Setup
+
+# Define name of required hardware
+gamepadName = "Sony PLAYSTATION(R)3 Controller"
+joystickName = "Logitech something ir other" # NOT REAL NAME. REPLACE THIS AS SOON AS YOU HAVE ACCESS TO THE REAL JOYSTICK!!!
+
+# Number of connected joysticks (Note: gamepads are considered joysticks)
+joystick_count = pygame.joystick.get_count()  # (should = 2) 
+
+# Find what joysticks are connected
+gamepadConnected = False
+joystickConnected = False
+for i in range(joystick_count):
+    if pygame.joystick.Joystick(i).get_name() == gamepadName:
+        gamepad = pygame.joystick.Joystick(i)
+        gamepad.init()
+        gamepadConnected = True
+        print("Gamepad Connected!")
+    elif pygame.joystick.Joystick(i).get_name() == joystickName:
+        joystick = pygame.joystick.Joystick(i)
+        joystick.init()
+        joystickConnected = True
+        print("Joystick Connected!")
+    else:
+        print("Unsupported Harware.")
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Global Variables for Main Loop
 
 # TextBox Objects
-motorTitleText = TextBox(40, 700, 50)     # Title: "Motor Values"
-sensTitleText = TextBox(40, 10, 481)      # Title: "Sensor Values"
-valMotorsText = TextBox(30, 700, 90)       # Data: Motor Values
-camDisconnectedText = TextBox(40, 10, 10) # Warning: Warns that Camera is Disconnected
+motorTitleText      =TextBox(40, 700, 50)  # Title: "Motor Values"
+sensTitleText       =TextBox(40, 10, 481)  # Title: "Sensor Values"
+armTitleText        =TextBox(40, 10, 400)  # Title: "Arm Movement:"
+valArmText          =TextBox(40, 170, 400) # Data: Arm Values
+valMotorsText       =TextBox(30, 700, 90)  # Data: Motor Values
+camDisconnectedText =TextBox(40, 10, 10)   # Warning: Warns that Camera is Disconnected
 camDisconnectedText.changeColor(RED)
 
-running = True   # Checks to see if the program has been quit
-notMoved = True  # Band-Aid for throttle. Used to see if the throttle has been moved from 0
+running = True   # Checks to see if the program is still running. Set False by quiting.
 
-# Count Variables (Will probably be removed on final version)
-joystick_count = pygame.joystick.get_count()  # Number of connected joysticks (should = 2) 
+# Band-Aid for throttle. 
+notMoved = True  # Checks to see if throttle has been moved from 0.
+throttle = 0     # Define throttle to start at 0.
 
-# Define throttle to start at 0
-throttle = 0
-
-# Define Motor Values (in mS). Defaults at stopped position.
+# Define Motor Values at default (in mS).
 M1Value = 1500
 M2Value = 1500
 M3Value = 1500
@@ -176,10 +205,13 @@ while running:
                         running = False
                        
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-        # Reset Display to Default (gray background, Titles, and Camera Feed)
+        # Reset Display
 
-        valMotorsText.reset() # Resets valMotorText
-        screen.fill(GRAY)   # Resets Screen to gray
+        # Reset TextBox's
+        valMotorsText.reset()
+        valArmText.reset()
+
+        screen.fill(GRAY) # Reset Screen to grey
 
         # Attemp to Display Video Feed
         if camConnected:
@@ -190,84 +222,108 @@ while running:
         # Display Titles
         motorTitleText.Print(screen, "Motor Values:")
         sensTitleText.Print(screen, "Sensor Values:")
+        armTitleText.Print(screen, "Arm Values: ")
 
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-        # For every attatched Joystick:
-        if joystick_count != 0 and arduinoConnected:
-                for i in range(joystick_count):
-                        joystick = pygame.joystick.Joystick(i)
-                        joystick.init()
-                        """"""""""""""""""""""""
+        # Read from Gamepad if gamepad is connected
+
+        if gamepadConnected:
+                for b in range(4, 12):
+                        # Up on D-pad
+                        if b == 4:
+                                print(gamepad.get_button(b)) # sample code showing how to access button values
+                                pass
+                        # Right on D-pad
+                        elif b == 5:
+                                pass
+                        # Down on D-pad
+                        elif b == 6:
+                                pass
+                        # Left on D-pad
+                        elif b == 7:
+                                pass
+                        # Left Bumper
+                        elif b == 8:
+                                pass
+                        # Right Bumper
+                        elif b == 9:
+                                pass
+                        # Left Trigger
+                        elif b == 10:
+                                pass
+                        # Right Trigger
+                        elif b == 11:
+                                pass
                         
-                        numAxes = joystick.get_numaxes() # Gets number of axis
+        """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+        # Reads Joystick input if Joystick and Ardunio are both connected.
 
-                        # Converts axis values to proper interval and sends them to Motors.
-                        for a in range( numAxes-1 ):
-                                    
-                                # Finds throttle and assigns valAxis its value.
-                                throttle = changeInterval(-joystick.get_axis(3), -1, 1, 0, 100)/100 # Remaps Throttle's interval from [-1, 1] to [0, 100]%
+        if joystickConnected and arduinoConnected:
 
-                                """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-                                #Band-Aid to fix Throttle Defaulting at 50.
+                numAxes = joystick.get_numaxes() # Gets number of axis on Joystick
 
-                                if notMoved:
-                                        if throttle != .5:
-                                                notMoved = False
-                                        else:
-                                                throttle = 0
-                                                
-                                """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-                                # Updating Motor Values
-                                
-                                # Left-Right
-                                if a == 0:
-                                      pass #temp  
+                # Loops through each axis
+                for a in range( numAxes-1 ):
+                            
+                        # throttle receives a percentage out of 100%
+                        throttle = changeInterval(-joystick.get_axis(3), -1, 1, 0, 100)/100
 
-                                #Forward-Backward
-                                elif a == 1:
-                                        # Write valAxis (in mS), to the Motor Servos
-                                        valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500-(400*throttle), 1500+(400*throttle))  # Maps Axis from [-1,1] to [1100, 1900] (Given Full Throttle)
+                        """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+                        #Band-Aid. Throttle will default at 0% instead of 50%.
 
-                                        M1Value = valAxis
-                                        M2Value = valAxis
+                        if notMoved:
+                                if throttle != .5:
+                                        notMoved = False
+                                else:
+                                        throttle = 0
+                                        
+                        """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+                        # Update Motor Values
+                        
+                        # Left-Right
+                        if a == 0:
+                              pass # Not Yet Written  
 
-                                # Yaw (now treated as a modifier)
-                                elif a == 2:
-                                        yawChange = changeInterval(joystick.get_axis(a), -1, 1, -50, 50)/100 # Remaps Yaw's interval from [-1, 1] to [-50, 50]%
+                        #Forward-Backward
+                        elif a == 1: 
+                                valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500-(400*throttle), 1500+(400*throttle))
+                                M1Value = valAxis
+                                M2Value = valAxis
 
-                                        # Backwards yaw is all fucked up! 
-                                        if yawChange != 25: #Not Neccessary, but it saves the program from running the following code.
-                                                if yawChange > 0: 
-                                                        if M1Value < 1500:   # If in Reverse (Broken)
-                                                                M1Value = M1Value - (400*throttle*yawChange)
-                                                        elif M1Value > 1500: # If Forward
-                                                                M1Value = M1Value + (400*throttle*yawChange)
-                                                        else:                # If not moving forward/Backward
-                                                                M1Value = 1500+200*throttle/100
-                                                                M2Value = 1500-200*throttle/100
-                                                elif yawChange < 0:          
-                                                        if M2Value < 1500:   # If in Reverse (Broken)
-                                                                M2Value = M2Value + (400*throttle*yawChange)
-                                                        elif M2Value > 1500: # If Forward
-                                                                M2Value = M2Value - (400*throttle*yawChange)
-                                                        else:                # If not moving forward/Backward
-                                                                 M1Value = 1500-200*throttle
-                                                                 M2Value = 1500+200*throttle
-                        """# Hat Button                        
-                        for i in range(hat_count):
-                                hat = joystick.gethat(i)
+                        # Yaw
+                        elif a == 2:
+                                yawChange = changeInterval(joystick.get_axis(a), -1, 1, -50, 50)/100 # Remaps Yaw's interval from [-1, 1] to [-50, 50]%
 
-                                # Up/Down
-                                if hat == (0, 1):
-                                        M3Value = 1500+(400*throttle)
-                                        M4Value = 1500+(400*throttle)
-                                elif hat == (0, -1):
-                                        M3Value = 1500-(400*throttle)
-                                        M4Value = 1500-(400*throttle)"""
-                                                
-# Tries to connect to unconnected hardware
+                                # Backwards Yaw BROKEN! 
+                                if yawChange != 25: #Not Neccessary, but it saves the program from running the following code.
+                                        if yawChange > 0: 
+                                                if M1Value < 1500:   # If in Reverse (Broken)
+                                                        M1Value = M1Value - (400*throttle*yawChange)
+                                                elif M1Value > 1500: # If Forward
+                                                        M1Value = M1Value + (400*throttle*yawChange)
+                                                else:                # If not moving forward/Backward
+                                                        M1Value = 1500+200*throttle/100
+                                                        M2Value = 1500-200*throttle/100
+                                        elif yawChange < 0:          
+                                                if M2Value < 1500:   # If in Reverse (Broken)
+                                                        M2Value = M2Value + (400*throttle*yawChange)
+                                                elif M2Value > 1500: # If Forward
+                                                        M2Value = M2Value - (400*throttle*yawChange)
+                                                else:                # If not moving forward/Backward
+                                                         M1Value = 1500-200*throttle
+                                                         M2Value = 1500+200*throttle
+
+                # Up/Down
+                if joystick.get_hat(0) == (0, 1):
+                        M3Value = 1500+(400*throttle)
+                        M4Value = 1500+(400*throttle)
+                elif joystick.get_hat(0) == (0, -1):
+                        M3Value = 1500-(400*throttle)
+                        M4Value = 1500-(400*throttle)
+
+                                  
+        # If arduino is disconnected, try to reconnect
         else:
-                # If Arduino is not connected, tries to connect (and connects to ESC's).
                 if not arduinoConnected:
                         try:
                                 connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected Arduino (Connected to bottom left USB Port) and sets baudrate to 115200
@@ -297,13 +353,9 @@ while running:
                         except:
                                 print("Arduino Failed to Connect")
                               
-                # If no Joysticks are connected, tries to connect.
-                if joystick_count == 0:
-                        joystick_count = pygame.joystick.get_count() # Number of connected joysticks (should = 1)
-                        if joystick_count != 0:
-                                hat__count = joystick.get_numhats()  # Number of hats found (should = 1)
 
-        # Attempt to Connect to Camera
+
+        # If Camera is not connected, try to reconnect
         if not camConnected:
                 try:
                         cam = pygame.camera.Camera("/dev/video0", ((640, 480))) # PSEYE Default Dimensions: (640,480)
@@ -312,7 +364,29 @@ while running:
                         camConnected = True
                 except:
                         pass
-                        
+
+        # If no joysticks are detected, try to reconnect
+        if not gamepadConnected and not joystickConnected:
+                # Rescans connected joysticks
+                pygame.joystick.quit()
+                pygame.joystick.init()
+                joystick_count = pygame.joystick.get_count()
+
+                gamepadConnected = False
+                joystickConnected = False
+                for i in range(joystick_count):
+                        if pygame.joystick.Joystick(i).get_name() == gamepadName:
+                                gamepad = pygame.joystick.Joystick(i)
+                                gamepad.init()
+                                gamepadConnected = True
+                                print("Gamepad Connected!")
+                        elif pygame.joystick.Joystick(i).get_name() == joystickName:
+                                joystick = pygame.joystick.Joystick(i)
+                                joystick.init()
+                                joystickConnected = True
+                                print("Joystick Connected!")
+                        else:
+                                print("Unsupported Harware Ignored.")  
                         
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Update GUI        
@@ -325,7 +399,7 @@ while running:
         valMotorsText.newLine()
 
         # Display Value of all motors
-        if joystick_count != 0 and arduinoConnected:
+        if joystickConnected and arduinoConnected:
                 valMotorsText.Print(screen, "Motor 1: " + str(M1Value))
                 valMotorsText.newLine()
 
@@ -343,20 +417,25 @@ while running:
                         valMotorsText.Print(screen, "Arduino is DISCONNECTED")
                         valMotorsText.newLine()
                         valMotorsText.changeColor(BLACK)
-                if joystick_count == 0:
+                if not joystickConnected:
                         valMotorsText.changeColor(RED)
                         valMotorsText.Print(screen, "Joystick is DISCONNECTED")
                         valMotorsText.newLine()
                         valMotorsText.changeColor(BLACK)
+        if gamepadConnected:
+                # Update Screen with arm values
+                pass
+        else:
+                valArmText.changeColor(RED)
+                valArmText.Print(screen, "Gamepad is DISCONNECTED")
                         
-
         pygame.display.update()
-        clock.tick(60) # Sets FPS = 60
+        clock.tick(60) # Sets FPS to 60
 
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Write to motors
 
-        # Motor's set Max & Min values 
+        # Limits Motor speed 
         motorMax = 1700
         motorMin = 1300
 
@@ -387,3 +466,15 @@ while running:
 
 pygame.quit()
 quit()
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Known Issues
+
+"""
+
+- Once Connected, joysticks can not be reconnected.
+- Camera reconnection has not been tested
+- Motors have not been tested.
+
+"""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

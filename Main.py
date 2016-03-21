@@ -5,13 +5,14 @@
 # 2. Global Classes
 # 3. Define GUI Variables
 # 4. Create Window
-# 5. Connect to Hardware
+# 5. Connect to motorArduino
 # 6. Pygame Initializations
 # 7. Joystick/Gamepad Variables & Setup
-# 8. Global Variables for Main Loop
-# 9. Main Loop
-# 10. Quit
-# 11. Known Issues
+# 9. Global Variables for Main Loop
+# 10. Write Servo's to Default
+# 11. Main Loop
+# 12. Quit
+# 13. Known Issues
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""        
 # Imports
@@ -21,6 +22,7 @@ import pygame.camera                                        # Experimental
 from nanpy import (ArduinoApi, SerialManager, Servo, wire)  # Arduino Api & Libraries for slavery
 from time import sleep                                      # Used for time.sleep() function
 from ROVFunctions import changeInterval
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""        
 # Global Classes
 
@@ -109,32 +111,47 @@ except:
         print("motorArduino Failed to Connect")
 
 # Define Motor Pins
-servoPin1 = 6
-servoPin2 = 9
-servoPin3 = 10
-servoPin4 = 11
+motorPin1 = 6
+motorPin2 = 9
+motorPin3 = 10
+motorPin4 = 11
 
-# Connects to ESC's if motorArduino is connected
+# Define Servo Pins
+armExtensionServoPin = 2
+armLRServoPin        = 3
+clawUDServoPin       = 4
+clawRotateServoPin   = 5
+clawOCServoPin       = 7
+camUDServoPin        = 8
+
+# Connects to ESC's & Servos if motorArduino is connected
 if motorArduinoConnected:
-                motor1 = Servo(servoPin1)
+                motor1 = Servo(motorPin1)
                 motor1.writeMicroseconds(1500)
                 sleep(1)
                 print("ESC1 Connected!")
 
-                motor2 = Servo(servoPin2)
+                motor2 = Servo(motorPin2)
                 motor2.writeMicroseconds(1500)
                 sleep(1)
                 print("ESC2 Connected!")
 
-                motor3 = Servo(servoPin3)
+                motor3 = Servo(motorPin3)
                 motor3.writeMicroseconds(1500)
                 sleep(1)
                 print("ESC3 Connected!")
 
-                motor4 = Servo(servoPin4)
+                motor4 = Servo(motorPin4)
                 motor4.writeMicroseconds(1500)
                 sleep(1)
                 print("ESC4 Connected!")
+
+                armExtensionServo = Servo(armExtensionServoPin)
+                armLRServo        = Servo(armLRServoPin)
+                clawUDServo       = Servo(clawUDServoPin)
+                clawRotateServo   = Servo(clawRotateServoPin)
+                clawOCServo       = Servo(clawOCServoPin)
+                camUDServo        = Servo(camUDServoPin)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Pygame Initializations
@@ -202,14 +219,34 @@ else:
         a24 = 0
         a25 = 0
 
-
 checkCount = 0 # Counts to 50 to see if ps3 axes 23-25 are equal all 50 times.
+
+extendingCount = 0   # Counts to 50 to allow the arm enough time to withdraw/extend
+extensionWait = 450  # UNTESTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+armExtended = False  # The program starts with the arm withdrawn
 
 # Define Motor Values at default (in mS).
 M1Value = 1500
 M2Value = 1500
 M3Value = 1500
 M4Value = 1500
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Write Servo's to Default
+"""Note: Values may be REVERSED!!!"""
+
+armLRPosition      = 90
+clawUDPosition     = 90
+clawRotatePosition = 90
+clawOCPosition     = 0   # May need to reverse
+camUDPosition      = 90
+
+armExtensionServo.write(180) # May need to Reverse
+armLRServo.write(armLRPosition)
+clawUDServo.write(clawUDPosition)
+clawRotateServo.write(clawRotatePosition) # We may want to make this 360° rotation. Not required.
+clawOCServo.write(clawOCPosition) 
+camUDServo.write(camUDPosition)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
@@ -245,33 +282,118 @@ while running:
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Read from Gamepad if gamepad is connected
 
+        """ Presume Up & Right to be +1. May need to reverse on a case by case basis. """
+
         if gamepadConnected:
-                for b in range(4, 12):
+                for b in range(0, 15):
+                        # Select Button
+                        if b == 0: # Withdraw Arm
+                                pressed = gamepad.get_button(b)
+                                if extendingCount != 0:
+                                       pressed = 1 
+                                if pressed == 1: 
+                                        if extendingCount != 0:
+                                                armExtended = False
+
+                                                # Reset arm servos to default
+                                                armLRPosition      = 90
+                                                clawUDPosition     = 90
+                                                clawRotatePosition = 90
+                                                clawOCPosition     = 0   # May need to reverse
+
+                                                armLRServo.write(armLRPosition)
+                                                clawUDServo.write(clawUDPosition)
+                                                clawRotateServo.write(clawRotatePosition) # We may want to make this 360° rotation. Not required.
+                                                clawOCServo.write(clawOCPosition) # May need to reverse
+ 
+                                                # [Code may be required to wait for servos to reset before withdrawing]
+
+                                                armExtensionServo.write(180) # May need to Reverse Value
+
+                                        # Attempt to wait for arm withdraw(WAIT TIME UNTESTED!!!)
+                                        if extendingCount < extensionWait:
+                                                extendingCount += 1
+                                                break
+                                        else:
+                                                extendingCount = 0
+
+                        # Start Button
+                        elif b == 3: # Extend Arm
+                                pressed = gamepad.get_button(b) == 1
+                                if extendingCount != 0:
+                                        pressed = 1
+                                if pressed == 1:
+                                        if extendingCount != 0:
+                                                armExtended = True
+                                                armExtensionServo.write(0) # May need to Reverse value
+
+                                        if extendingCount < extensionWait:
+                                                extendingCount += 1
+                                                break
+                                        else:
+                                                extendingCount = 0
+                                
                         # Up on D-pad
-                        if b == 4:
-                                print(gamepad.get_button(b)) # sample code showing how to access button values
-                                pass
+                        elif b == 4 and armExtended: # Tilt Claw Up
+                                if gamepad.get_button(b) == 1:
+                                        clawUDPosition+=1
+                                        clawUDServo.write(clawUDPosition) 
+
                         # Right on D-pad
-                        elif b == 5:
-                                pass
+                        elif b == 5 and armExtended:  # Move Arm Right
+                                if gamepad.get_button(b) == 1:
+                                        armLRPosition+=1
+                                        clawLRServo.write(armLRPosition) 
+
                         # Down on D-pad
-                        elif b == 6:
-                                pass
+                        elif b == 6 and armExtended:  # Tilt Claw Down
+                                if gamepad.get_button(b) == 1:
+                                        clawUDPosition-=1
+                                        clawUDServo.write(clawUDPosition) 
+
                         # Left on D-pad
-                        elif b == 7:
-                                pass
+                        elif b == 7 and armExtended:  # Move Arm Left
+                                if gamepad.get_button(b) == 1:
+                                        armLRPosition-=1
+                                        clawLRServo.write(armLRPosition) 
+
                         # Left Bumper
-                        elif b == 8:
-                                pass
+                        elif b == 8 and armExtended:  # Open Claw
+                                if gamepad.get_button(b) == 1:
+                                        clawOCPosition-=1
+                                        clawOCServo.write(clawOCPosition) 
+
                         # Right Bumper
-                        elif b == 9:
-                                pass
+                        elif b == 9 and armExtended:  # Close Claw
+                                if gamepad.get_button(b) == 1:
+                                        clawOCPosition+=1
+                                        clawOCServo.write(clawOCPosition) 
+
                         # Left Trigger
-                        elif b == 10:
-                                pass
+                        elif b == 10 and armExtended: # Rotate Wrist counterclockwise
+                                if gamepad.get_button(b) == 1:
+                                        clawRotatePosition-=1
+                                        clawRotateServo.write(clawRotatePosition)
+
                         # Right Trigger
-                        elif b == 11:
-                                pass
+                        elif b == 11 and armExtended: # Rotate Wrist clockwise
+                                if gamepad.get_button(b) == 1:
+                                        clawRotatePosition+=1
+                                        clawRotateServo.write(clawRotatePosition) 
+
+                # Tracked seperately from arm servos
+                for b in [12, 14]:
+                        # Triangle Button
+                        if b == 12:                 # Move Camera Servo Up
+                                if gamepad.get_button(b) == 1:
+                                        camUDPosition+=1
+                                        camUDServo.write(camUDPosition) 
+
+                        # X Button
+                        elif b == 14:                 # Move Camera Servo Down
+                                if gamepad.get_button(b) == 1:
+                                        camUDPosition-=1
+                                        camUDServo.write(camUDPosition) 
 
                 # Check motion tracker to see if controller is disconnected.
                 OGa23 = a23
@@ -365,25 +487,32 @@ while running:
                                 motorArduinoConnected = True
                                 print("motorArduino Connected!")
 
-                                motor1 = Servo(servoPin1)
+                                motor1 = Servo(motorPin1)
                                 motor1.writeMicroseconds(1500)
                                 sleep(1)
                                 print("ESC1 Connected!")
 
-                                motor2 = Servo(servoPin2)
+                                motor2 = Servo(motorPin2)
                                 motor2.writeMicroseconds(1500)
                                 sleep(1)
                                 print("ESC2 Connected!")
 
-                                motor3 = Servo(servoPin3)
+                                motor3 = Servo(motorPin3)
                                 motor3.writeMicroseconds(1500)
                                 sleep(1)
                                 print("ESC3 Connected!")
 
-                                motor4 = Servo(servoPin4)
+                                motor4 = Servo(motorPin4)
                                 motor4.writeMicroseconds(1500)
                                 sleep(1)
                                 print("ESC4 Connected!")
+
+                                armExtensionServo = Servo(armExtensionServoPin)
+                                armLRServo        = Servo(armLRServoPin)
+                                clawUDServo       = Servo(clawUDServoPin)
+                                clawRotateServo   = Servo(clawRotateServoPin)
+                                clawOCServo       = Servo(clawOCServoPin)
+                                camUDServo        = Servo(camUDServoPin)
                         except:
                                 print("motorArduino Failed to Connect")
                               
@@ -498,6 +627,25 @@ while running:
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Quit
 
+# Reset arm Servos to default
+armLRPosition      = 90
+clawUDPosition     = 90
+clawRotatePosition = 90
+clawOCPosition     = 0   # May need to reverse
+
+armLRServo.write(armLRPosition)
+clawUDServo.write(clawUDPosition)
+clawRotateServo.write(clawRotatePosition) # We may want to make this 360° rotation. Not required.
+clawOCServo.write(clawOCPosition) # May need to reverse
+
+# [Code may be required to wait for servos to reset before withdrawing]
+
+armExtensionServo.write(180) # May need to Reverse Value
+
+# Reset Camera Servo to Default
+camUDPosition= 90
+camUDServo.write(camUDPosition)
+
 pygame.quit()
 quit()
 
@@ -506,7 +654,7 @@ quit()
 
 """
 
-- Once Connected, joysticks can not be reconnected.
+- Once Connected, joystick can not be reconnected.
 - Camera reconnection has not been tested
 - Motors have not been tested.
 

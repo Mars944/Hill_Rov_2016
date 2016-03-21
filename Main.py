@@ -5,7 +5,7 @@
 # 2. Global Classes
 # 3. Define GUI Variables
 # 4. Create Window
-# 5. Connect to motorArduino
+# 5. Connect to arduino
 # 6. Pygame Initializations
 # 7. Joystick/Gamepad Variables & Setup
 # 9. Global Variables for Main Loop
@@ -98,17 +98,17 @@ except:
         camConnected = False
         
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Connect to motorArduino
+# Connect to arduino
 
-# Attempts to connect to motorArduino
-motorArduinoConnected = False
+# Attempts to connect to arduino
+arduinoConnected = False
 try:
-        connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected motorArduino (Connected to bottom left USB Port) and sets baudrate to 115200
-        motorArduino = ArduinoApi(connection = connection)
-        motorArduinoConnected = True
-        print("motorArduino Connected!")
+        connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected arduino (Connected to bottom left USB Port) and sets baudrate to 115200
+        arduino = ArduinoApi(connection = connection)
+        arduinoConnected = True
+        print("arduino Connected!")
 except:
-        print("motorArduino Failed to Connect")
+        print("arduino Failed to Connect")
 
 # Define Motor Pins
 motorPin1 = 6
@@ -124,8 +124,8 @@ clawRotateServoPin   = 5
 clawOCServoPin       = 7
 camUDServoPin        = 8
 
-# Connects to ESC's & Servos if motorArduino is connected
-if motorArduinoConnected:
+# Connects to ESC's & Servos if arduino is connected
+if arduinoConnected:
                 motor1 = Servo(motorPin1)
                 motor1.writeMicroseconds(1500)
                 sleep(1)
@@ -414,7 +414,7 @@ while running:
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Reads Joystick input if Joystick and Ardunio are both connected.
 
-        if joystickConnected and motorArduinoConnected:
+        if joystickConnected and arduinoConnected:
 
                 numAxes = joystick.get_numaxes() # Gets number of axis on Joystick
 
@@ -478,14 +478,14 @@ while running:
                         M4Value = 1500-(400*throttle)
 
                                   
-        # If motorArduino is disconnected, try to reconnect
+        # If arduino is disconnected, try to reconnect
         else:
-                if not motorArduinoConnected:
+                if not arduinoConnected:
                         try:
-                                connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected motorArduino (Connected to bottom left USB Port) and sets baudrate to 115200
-                                motorArduino = ArduinoApi(connection = connection)
-                                motorArduinoConnected = True
-                                print("motorArduino Connected!")
+                                connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected arduino (Connected to bottom left USB Port) and sets baudrate to 115200
+                                arduino = ArduinoApi(connection = connection)
+                                arduinoConnected = True
+                                print("arduino Connected!")
 
                                 motor1 = Servo(motorPin1)
                                 motor1.writeMicroseconds(1500)
@@ -514,7 +514,7 @@ while running:
                                 clawOCServo       = Servo(clawOCServoPin)
                                 camUDServo        = Servo(camUDServoPin)
                         except:
-                                print("motorArduino Failed to Connect")
+                                print("arduino Failed to Connect")
                               
 
 
@@ -562,7 +562,7 @@ while running:
         valMotorsText.newLine()
 
         # Display Value of all motors
-        if joystickConnected and motorArduinoConnected:
+        if joystickConnected and arduinoConnected:
                 valMotorsText.Print(screen, "Motor 1: " + str(M1Value))
                 valMotorsText.newLine()
 
@@ -575,9 +575,9 @@ while running:
                 valMotorsText.Print(screen, "Motor 4: " + str(M4Value))
                 valMotorsText.newLine()
         else:
-                if not motorArduinoConnected:
+                if not arduinoConnected:
                         valMotorsText.changeColor(RED)
-                        valMotorsText.Print(screen, "motorArduino is DISCONNECTED")
+                        valMotorsText.Print(screen, "arduino is DISCONNECTED")
                         valMotorsText.newLine()
                         valMotorsText.changeColor(BLACK)
                 if not joystickConnected:
@@ -603,7 +603,7 @@ while running:
         motorMin = 1300
 
         # Limits to motorMax & MotorMin
-        if motorArduinoConnected:
+        if arduinoConnected:
                 if M1Value > 1500:
                         motor1.writeMicroseconds(min(M1Value, motorMax))
                 elif M1Value < 1500:

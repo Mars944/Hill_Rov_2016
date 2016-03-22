@@ -190,6 +190,7 @@ for i in range(joystick_count):
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Global Variables for Main Loop
 
+""""""
 # TextBox Objects
 motorTitleText      =TextBox(40, 700, 50)  # Title: "Motor Values"
 sensTitleText       =TextBox(40, 10, 481)  # Title: "Sensor Values"
@@ -203,11 +204,17 @@ camDisconnectedText =TextBox(40, 10, 10)   # Disconnect: Warns that Camera is Di
 gamepadReminderText.changeColor(RED)
 camDisconnectedText.changeColor(RED)
 
+""""""
+
 running = True   # Checks to see if the program is still running. Set False by quiting.
 
+""""""
 # Band-Aid for throttle. 
 notMoved = True  # Checks to see if throttle has been moved from 0.
 throttle = 0     # Define throttle to start at 0.
+
+""""""
+# Gamepad Variables
 
 # Used to check if gamepad has been disconnected.
 if gamepadConnected:
@@ -219,18 +226,32 @@ else:
         a24 = 0
         a25 = 0
 
+
 checkCount = 0 # Counts to 50 to see if ps3 axes 23-25 are equal all 50 times.
 
+# Arm variables
 extendingCount = 0   # Counts to 50 to allow the arm enough time to withdraw/extend
 extensionWait = 450  # UNTESTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 armExtended = False  # The program starts with the arm withdrawn
 
+""""""
+# Screenshot Variables
+
+screenshotsLeft  = []   # Both used to store screenshots
+screenshotsRight = []   #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+screenshotLeft   = None # Holds the screenshot to be displayed on the Left
+screenshotRight  = None # Holds the screenshot to be displayed on the Right
+
+""""""
 # Define Motor Values at default (in mS).
+
 M1Value = 1500
 M2Value = 1500
 M3Value = 1500
 M4Value = 1500
 
+""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Write Servo's to Default
 """Note: Values may be REVERSED!!!"""
@@ -273,6 +294,12 @@ while running:
         else:
                 camDisconnectedText.Print(screen, "CAMERA DISCONNECTED.")
 
+        # Displays screenshots
+        if screenshotLeft != None:
+                pass # screen.blit(screenshotLeft, (?,?))
+        if screenshotRight != None:
+                pass # screen.blit(screenshotRight, (?,?))
+        
         # Display Titles
         motorTitleText.Print(screen, "Motor Values:")
         sensTitleText.Print(screen, "Sensor Values:")
@@ -285,7 +312,7 @@ while running:
         """ Presume Up & Right to be +1. May need to reverse on a case by case basis. """
 
         if gamepadConnected:
-                for b in range(0, 15):
+                for b in range(0, 12):
                         # Select Button
                         if b == 0: # Withdraw Arm
                                 pressed = gamepad.get_button(b)
@@ -389,8 +416,29 @@ while running:
 		                                        clawRotatePosition+=1
 		                                        clawRotateServo.write(clawRotatePosition)
 
-                # Tracked seperately from arm servos
-                for b in [12, 14]:
+                # Camera Related Buttons. Tracked seperately from arm servos
+                for b in [1, 2]:
+                        # Left Joystick
+                        if b == 1:                  # Flip through saved Left Screenshots
+                                if screenshotLeft == screenshotsLeft[len(screenshotsLeft)-1]
+                                        screenshotLeft = screenshotsLeft[0]
+                                else:
+                                        for i in range(0, len(screensshotsLeft)-1):
+                                                if screenshotLeft == screenshotsLeft[i]
+                                                        screenshotLeft = screenshotsLeft[i+1]
+                                # screen.blit(screenshotLeft, (?,?))
+
+                        # Right Joystick
+                        if b == 2:                  # Flip through saved Right Screenshots
+                                if screenshotRight == screenshotsRight[len(screenshotsRight)-1]
+                                        screenshotRight = screenshotsRight[0]
+                                else:
+                                        for i in range(0, len(screensshotsRight)-1):
+                                                if screenshotRight == screenshotsRight[i]
+                                                        screenshotRight = screenshotsRight[i+1]
+                                # screen.blit(screenshotRight, (?,?))
+                                
+                for b in range(12, 16):
                         # Triangle Button
                         if b == 12:                 # Move Camera Servo Up
                                 if gamepad.get_button(b) == 1:
@@ -398,12 +446,27 @@ while running:
 		                                        camUDPosition+=1
 		                                        camUDServo.write(camUDPosition) 
 
+                        # Circle Button
+                        elif b == 13:               # Save Screenshot to RightArray            
+                                if camConnected:
+                                        if gamepad.get_button(b) == 1:
+                                                screenshotsRight.append(cam.get_image())
+                                                screenshotRight = screenshotsRight[len(screenshotsRight)-1]
+                                                # screen.blit(screenshotRight, (?,?))
+
                         # X Button
-                        elif b == 14:                 # Move Camera Servo Down
+                        elif b == 14:               # Move Camera Servo Down
                                 if gamepad.get_button(b) == 1:
 		                                if camUDPosition > 0:
-		                                        camUDPosition-=1
-		                                        camUDServo.write(camUDPosition) 
+                                                        camUDPosition-=1
+                                                        camUDServo.write(camUDPosition)
+                        # Square Button
+                        elif b == 15:               # Save Screenshot to LeftArray            
+                                if camConnected:
+                                        if gamepad.get_button(b) == 1:
+                                                screenshotsLeft.append(cam.get_image())
+                                                screenshotLeft = screenshotsLeft[len(screenshotsLeft)-1]
+                                                # screen.blit(screenshotLeft, (?,?))
 
                 # Check motion tracker to see if controller is disconnected.
                 OGa23 = a23

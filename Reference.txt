@@ -4,6 +4,8 @@ Arm gamepad == Sony PLAYSTATION(R)3 Controller
 
 Gamepad Button Mapping:
 - Select Button == Button 0
+- Joystick Left == Button 1
+- Joystick Right == Button 2
 - Start Button == Button 3
 - Up D-Pad == Button 4
 - Right D-Pad == Button 5

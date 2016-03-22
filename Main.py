@@ -363,78 +363,78 @@ while running:
                         # Up on D-pad
                         elif b == 4 and armExtended: # Tilt Claw Up
                                 if gamepad.get_button(b) == 1:
-		                                if clawUDPosition < 180:
-		                                        clawUDPosition+=1
-		                                        clawUDServo.write(clawUDPosition) 
+                                                if clawUDPosition < 180:
+                                                        clawUDPosition+=1
+                                                        clawUDServo.write(clawUDPosition) 
 
                         # Right on D-pad
                         elif b == 5 and armExtended:  # Move Arm Right
                                 if gamepad.get_button(b) == 1:
-		                                if armLRPosition < 180:        
-		                                        armLRPosition+=1
-		                                        clawLRServo.write(armLRPosition) 
+                                                if armLRPosition < 180:        
+                                                        armLRPosition+=1
+                                                        clawLRServo.write(armLRPosition) 
 
                         # Down on D-pad
                         elif b == 6 and armExtended:  # Tilt Claw Down
                                 if gamepad.get_button(b) == 1:
-		                                if clawUDPosition > 0:        
-		                                        clawUDPosition-=1
-		                                        clawUDServo.write(clawUDPosition) 
+                                                if clawUDPosition > 0:        
+                                                        clawUDPosition-=1
+                                                        clawUDServo.write(clawUDPosition) 
 
                         # Left on D-pad
                         elif b == 7 and armExtended:  # Move Arm Left
                                 if gamepad.get_button(b) == 1:
-		                                if armLRPosition > 0:        
-		                                        armLRPosition-=1
-		                                        clawLRServo.write(armLRPosition) 
+                                                if armLRPosition > 0:        
+                                                        armLRPosition-=1
+                                                        clawLRServo.write(armLRPosition) 
 
                         # Left Bumper
                         elif b == 8 and armExtended:  # Open Claw
                                 if gamepad.get_button(b) == 1:
-		                                if clawOCPosition > 0:
-		                                        clawOCPosition-=1
-		                                        clawOCServo.write(clawOCPosition) 
+                                                if clawOCPosition > 0:
+                                                        clawOCPosition-=1
+                                                        clawOCServo.write(clawOCPosition) 
 
                         # Right Bumper
                         elif b == 9 and armExtended:  # Close Claw
                                 if gamepad.get_button(b) == 1:
                                         if clawOCPosition < 180:
-		                                        clawOCPosition+=1
-		                                        clawOCServo.write(clawOCPosition)
+                                                        clawOCPosition+=1
+                                                        clawOCServo.write(clawOCPosition)
 
                         # Left Trigger
                         elif b == 10 and armExtended: # Rotate Wrist counterclockwise
                                 if gamepad.get_button(b) == 1:
-		                                if clawRotatePosition > 0:
-		                                        clawRotatePosition-=1
-		                                        clawRotateServo.write(clawRotatePosition)
+                                                if clawRotatePosition > 0:
+                                                        clawRotatePosition-=1
+                                                        clawRotateServo.write(clawRotatePosition)
 
                         # Right Trigger
                         elif b == 11 and armExtended: # Rotate Wrist clockwise
                                 if gamepad.get_button(b) == 1:
                                         if clawRotatePosition < 180:
-		                                        clawRotatePosition+=1
-		                                        clawRotateServo.write(clawRotatePosition)
+                                                        clawRotatePosition+=1
+                                                        clawRotateServo.write(clawRotatePosition)
 
                 # Camera Related Buttons. Tracked seperately from arm servos
                 for b in [1, 2]:
                         # Left Joystick
                         if b == 1:                  # Flip through saved Left Screenshots
-                                if screenshotLeft == screenshotsLeft[len(screenshotsLeft)-1]
+                                if screenshotLeft == screenshotsLeft[len(screenshotsLeft)-1]:
                                         screenshotLeft = screenshotsLeft[0]
                                 else:
                                         for i in range(0, len(screensshotsLeft)-1):
-                                                if screenshotLeft == screenshotsLeft[i]
+                                                if screenshotLeft == screenshotsLeft[i]:
                                                         screenshotLeft = screenshotsLeft[i+1]
                                 # screen.blit(screenshotLeft, (?,?))
 
                         # Right Joystick
                         if b == 2:                  # Flip through saved Right Screenshots
-                                if screenshotRight == screenshotsRight[len(screenshotsRight)-1]
+                                if screenshotRight == screenshotsRight[len(screenshotsRight)-1]:
                                         screenshotRight = screenshotsRight[0]
                                 else:
                                         for i in range(0, len(screensshotsRight)-1):
-                                                if screenshotRight == screenshotsRight[i]
+                                                if screenshotRight == screenshotsRight[i]:
                                                         screenshotRight = screenshotsRight[i+1]
                                 # screen.blit(screenshotRight, (?,?))
                                 
@@ -442,9 +442,9 @@ while running:
                         # Triangle Button
                         if b == 12:                 # Move Camera Servo Up
                                 if gamepad.get_button(b) == 1:
-		                                if camUDPosition < 180:        
-		                                        camUDPosition+=1
-		                                        camUDServo.write(camUDPosition) 
+                                                if camUDPosition < 180:        
+                                                        camUDPosition+=1
+                                                        camUDServo.write(camUDPosition) 
 
                         # Circle Button
                         elif b == 13:               # Save Screenshot to RightArray            
@@ -457,7 +457,7 @@ while running:
                         # X Button
                         elif b == 14:               # Move Camera Servo Down
                                 if gamepad.get_button(b) == 1:
-		                                if camUDPosition > 0:
+                                                if camUDPosition > 0:
                                                         camUDPosition-=1
                                                         camUDServo.write(camUDPosition)
                         # Square Button

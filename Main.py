@@ -71,8 +71,8 @@ GRAY = (211, 211, 211)
 RED =  (255, 0, 0)
 
 # Used to set window dimensions
-display_width = 1000
-display_length = 650
+display_width = 1185
+display_length = 593
 
 # Create Clock object
 clock = pygame.time.Clock() # Will be used for FPS

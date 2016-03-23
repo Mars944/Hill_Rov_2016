@@ -67,8 +67,9 @@ class TextBox:  # Creates an object to work similarly to a text box.
 # Define Colors
 BLACK = (0,0,0)
 WHITE = (255,255,255)
-GRAY = (211, 211, 211)
-RED =  (255, 0, 0)
+GRAY  = (211, 211, 211)
+RED   = (255, 0, 0)
+ORANGE = (255, 165, 0)
 
 # Used to set window dimensions
 display_width = 1185 # 1185 (Home) 1825 (Hill) (Diff 640)
@@ -305,10 +306,11 @@ while running:
                 camDisconnectedText.Print(screen, "CAMERA DISCONNECTED.")
 
         # Displays screenshots
+        pygame.draw.rect(screen, ORANGE,(510, 343, 673, 250))
         if screenshotLeft != None:
-                screen.blit(pygame.transform.scale(screenshotLeft, (320,240)), (650,350))
+                screen.blit(pygame.transform.scale(screenshotLeft, (320,240)), (523, 353))
         if screenshotRight != None:
-                screen.blit(pygame.transform.scale(screenshotRight, (320,240)), (1000,350))
+                screen.blit(pygame.transform.scale(screenshotRight, (320,240)), (853,353))
         
         # Display Titles
         motorTitleText.Print(screen, "Motor Values:")

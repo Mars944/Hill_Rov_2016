@@ -71,8 +71,8 @@ GRAY = (211, 211, 211)
 RED =  (255, 0, 0)
 
 # Used to set window dimensions
-display_width = 1185
-display_length = 593
+display_width = 1825 # 1185 (Home) (Diff 640)
+display_length = 953 # 593  (Home) (Diff 360)
 
 # Create Clock object
 clock = pygame.time.Clock() # Will be used for FPS
@@ -237,11 +237,21 @@ armExtended = False  # The program starts with the arm withdrawn
 """"""
 # Screenshot Variables
 
-screenshotsLeft  = []   # Both used to store screenshots
-screenshotsRight = []   #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+screenshotsLeft   = []   # Both used to store screenshots
+screenshotsRight  = []   # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-screenshotLeft   = None # Holds the screenshot to be displayed on the Left
-screenshotRight  = None # Holds the screenshot to be displayed on the Right
+screenshotLeft    = None # Holds the screenshot to be displayed on the Left
+screenshotRight   = None # Holds the screenshot to be displayed on the Right
+
+ssWaitL           = 0    # Waits for X counts before next screenshot
+ssWaitR           = 0    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+squareWait        = 0  # Waits for X counts before next button use
+circleWait        = 0  # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+ssDisplayedIndexL = 0    # Stores index of screenshotsLeft being displayed
+ssDisplayedIndexR = 0    # Stores index of screenshotsRight being displayed
 
 """"""
 # Define Motor Values at default (in mS).
@@ -296,7 +306,7 @@ while running:
 
         # Displays screenshots
         if screenshotLeft != None:
-                pass # screen.blit(pygame.transform.scale(screenshotLeft, (??,??)), (?,?))
+                screen.blit(pygame.transform.scale(screenshotLeft, (320,240)), (700,400))
         if screenshotRight != None:
                 pass # screen.blit(pygame.transform.scale(screenshotRight, (??,??)), (?,?))
         
@@ -417,28 +427,35 @@ while running:
                                                         clawRotateServo.write(clawRotatePosition)
 
                 # Camera Related Buttons. Tracked seperately from arm servos
-                for b in [1, 2]:
+                for b in range(1, 3):
                         # Left Joystick
                         if b == 1:                  # Flip through saved Left Screenshots
-                                if screenshotsLeft == None:
-                                        if screenshotLeft == screenshotsLeft[len(screenshotsLeft)-1]:
-                                                screenshotLeft = screenshotsLeft[0]
-                                        else:
-                                                for i in range(0, len(screenshotsLeft)-1):
-                                                        if screenshotLeft == screenshotsLeft[i]:
-                                                                screenshotLeft = screenshotsLeft[i+1]
-                                # screen.blit(screenshotLeft, (?,?))
+                                if ssWaitL == 0:
+                                        if gamepad.get_button(b) == 1:
+                                                if not screenshotsLeft:
+                                                        pass
+                                                else:
+                                                        print("Made it")
+                                                        ssDisplayedIndexL+=1
+                                                        if ssDisplayedIndexL >= len(screenshotsLeft):
+                                                                ssDisplayedIndexL = 0
+                                                        screenshotLeft = screenshotsLeft[ssDisplayedIndexL]
+                                                        ssWaitL+=1
+                                else:
+                                        ssWaitL+=1
+                                        if ssWaitL >= 10:
+                                                ssWaitL = 0
 
                         # Right Joystick
                         if b == 2:                  # Flip through saved Right Screenshots
-                                if screenshotsRight == None:
-                                        if screenshotRight == screenshotsRight[len(screenshotsRight)-1]:
-                                                screenshotRight = screenshotsRight[0]
-                                        else:
-                                                for i in range(0, len(screensshotsRight)-1):
-                                                        if screenshotRight == screenshotsRight[i]:
-                                                                screenshotRight = screenshotsRight[i+1]
-                                # screen.blit(screenshotRight, (?,?))
+                                 if gamepad.get_button(b) == 1:
+                                        if screenshotsRight != []:
+                                                if screenshotRight == screenshotsRight[len(screenshotsRight)-1]:
+                                                        screenshotRight = screenshotsRight[0]
+                                                else:
+                                                        for i in range(0, len(screensshotsRight)-2):
+                                                                if screenshotRight == screenshotsRight[i]:
+                                                                        screenshotRight = screenshotsRight[i+1]
                                 
                 for b in range(12, 16):
                         # Triangle Button
@@ -464,11 +481,17 @@ while running:
                                                         camUDServo.write(camUDPosition)
                         # Square Button
                         elif b == 15:               # Save Screenshot to LeftArray            
-                                if camConnected:
-                                        if gamepad.get_button(b) == 1:
-                                                screenshotsLeft.append(cam.get_image())
-                                                screenshotLeft = screenshotsLeft[len(screenshotsLeft)-1]
-                                                # screen.blit(screenshotLeft, (?,?))
+                                if squareWait == 0:
+                                        if camConnected:
+                                                if gamepad.get_button(b) == 1:
+                                                        screenshotsLeft.append(cam.get_image())
+                                                        ssDisplayedIndexL = len(screenshotsLeft)-1
+                                                        screenshotLeft = screenshotsLeft[len(screenshotsLeft)-1]
+                                                        squareWait+=1
+                                else:
+                                        squareWait+=1
+                                        if squareWait >= 10:
+                                                squareWait = 0   
 
                 # Check motion tracker to see if controller is disconnected.
                 OGa23 = a23

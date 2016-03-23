@@ -296,9 +296,9 @@ while running:
 
         # Displays screenshots
         if screenshotLeft != None:
-                pass # screen.blit(screenshotLeft, (?,?))
+                pass # screen.blit(pygame.transform.scale(screenshotLeft, (??,??)), (?,?))
         if screenshotRight != None:
-                pass # screen.blit(screenshotRight, (?,?))
+                pass # screen.blit(pygame.transform.scale(screenshotRight, (??,??)), (?,?))
         
         # Display Titles
         motorTitleText.Print(screen, "Motor Values:")

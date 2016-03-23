@@ -71,8 +71,8 @@ GRAY = (211, 211, 211)
 RED =  (255, 0, 0)
 
 # Used to set window dimensions
-display_width = 1825 # 1185 (Home) (Diff 640)
-display_length = 953 # 593  (Home) (Diff 360)
+display_width = 1185 # 1185 (Home) 1825 (Hill) (Diff 640)
+display_length = 593 # 593  (Home) 953  (Hill) (Diff 360)
 
 # Create Clock object
 clock = pygame.time.Clock() # Will be used for FPS
@@ -90,7 +90,7 @@ pygame.display.set_caption("The Hill ROV Companion App")          # Sets Window'
 # Attempts to connect to Camera
 camConnected = True
 try:
-        cam = pygame.camera.Camera("/dev/video0", ((640, 480))) # PSEYE Default Dimesnsions: (640,480)
+        cam = pygame.camera.Camera("/dev/video0", (720, 1080)) # PSEYE Default Dimesnsions: (640,480)
         cam.start()
         print("Camera Connected!")
 except:
@@ -165,7 +165,7 @@ pygame.camera.init()                         # Initialize the Camera library
 
 # Define name of required hardware
 gamepadName = "Sony PLAYSTATION(R)3 Controller"
-joystickName = "Logitech something ir other" # NOT REAL NAME. REPLACE THIS AS SOON AS YOU HAVE ACCESS TO THE REAL JOYSTICK!!!
+joystickName = "Logitech Logitech Extreme 3D"
 
 # Number of connected joysticks (Note: gamepads are considered joysticks)
 joystick_count = pygame.joystick.get_count()  # (should = 2) 
@@ -300,15 +300,15 @@ while running:
 
         # Attemp to Display Video Feed
         if camConnected:
-                screen.blit(cam.get_image(), (0,0))
+                screen.blit(pygame.transform.scale(cam.get_image(), (480,360)), (0,0))
         else:
                 camDisconnectedText.Print(screen, "CAMERA DISCONNECTED.")
 
         # Displays screenshots
         if screenshotLeft != None:
-                screen.blit(pygame.transform.scale(screenshotLeft, (320,240)), (700,400))
+                screen.blit(pygame.transform.scale(screenshotLeft, (320,240)), (650,350))
         if screenshotRight != None:
-                pass # screen.blit(pygame.transform.scale(screenshotRight, (??,??)), (?,?))
+                screen.blit(pygame.transform.scale(screenshotRight, (320,240)), (1000,350))
         
         # Display Titles
         motorTitleText.Print(screen, "Motor Values:")
@@ -435,7 +435,6 @@ while running:
                                                 if not screenshotsLeft:
                                                         pass
                                                 else:
-                                                        print("Made it")
                                                         ssDisplayedIndexL+=1
                                                         if ssDisplayedIndexL >= len(screenshotsLeft):
                                                                 ssDisplayedIndexL = 0
@@ -448,14 +447,20 @@ while running:
 
                         # Right Joystick
                         if b == 2:                  # Flip through saved Right Screenshots
-                                 if gamepad.get_button(b) == 1:
-                                        if screenshotsRight != []:
-                                                if screenshotRight == screenshotsRight[len(screenshotsRight)-1]:
-                                                        screenshotRight = screenshotsRight[0]
+                                if ssWaitR == 0:
+                                        if gamepad.get_button(b) == 1:
+                                                if not screenshotsRight:
+                                                        pass
                                                 else:
-                                                        for i in range(0, len(screensshotsRight)-2):
-                                                                if screenshotRight == screenshotsRight[i]:
-                                                                        screenshotRight = screenshotsRight[i+1]
+                                                        ssDisplayedIndexR+=1
+                                                        if ssDisplayedIndexR >= len(screenshotsRight):
+                                                                ssDisplayedIndexR = 0
+                                                        screenshotRight = screenshotsRight[ssDisplayedIndexR]
+                                                        ssWaitR+=1
+                                else:
+                                        ssWaitR+=1
+                                        if ssWaitR >= 10:
+                                                ssWaitR = 0
                                 
                 for b in range(12, 16):
                         # Triangle Button
@@ -467,11 +472,17 @@ while running:
 
                         # Circle Button
                         elif b == 13:               # Save Screenshot to RightArray            
-                                if camConnected:
-                                        if gamepad.get_button(b) == 1:
-                                                screenshotsRight.append(cam.get_image())
-                                                screenshotRight = screenshotsRight[len(screenshotsRight)-1]
-                                                # screen.blit(screenshotRight, (?,?))
+                                if circleWait == 0:
+                                        if camConnected:
+                                                if gamepad.get_button(b) == 1:
+                                                        screenshotsRight.append(cam.get_image())
+                                                        ssDisplayedIndexR = len(screenshotsRight)-1
+                                                        screenshotRight = screenshotsRight[len(screenshotsRight)-1]
+                                                        circleWait+=1
+                                else:
+                                        circleWait+=1
+                                        if circleWait >= 10:
+                                                circleWait = 0
 
                         # X Button
                         elif b == 14:               # Move Camera Servo Down

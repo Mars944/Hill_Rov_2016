@@ -420,22 +420,24 @@ while running:
                 for b in [1, 2]:
                         # Left Joystick
                         if b == 1:                  # Flip through saved Left Screenshots
-                                if screenshotLeft == screenshotsLeft[len(screenshotsLeft)-1]:
-                                        screenshotLeft = screenshotsLeft[0]
-                                else:
-                                        for i in range(0, len(screensshotsLeft)-1):
-                                                if screenshotLeft == screenshotsLeft[i]:
-                                                        screenshotLeft = screenshotsLeft[i+1]
+                                if screenshotsLeft == None:
+                                        if screenshotLeft == screenshotsLeft[len(screenshotsLeft)-1]:
+                                                screenshotLeft = screenshotsLeft[0]
+                                        else:
+                                                for i in range(0, len(screenshotsLeft)-1):
+                                                        if screenshotLeft == screenshotsLeft[i]:
+                                                                screenshotLeft = screenshotsLeft[i+1]
                                 # screen.blit(screenshotLeft, (?,?))
 
                         # Right Joystick
                         if b == 2:                  # Flip through saved Right Screenshots
-                                if screenshotRight == screenshotsRight[len(screenshotsRight)-1]:
-                                        screenshotRight = screenshotsRight[0]
-                                else:
-                                        for i in range(0, len(screensshotsRight)-1):
-                                                if screenshotRight == screenshotsRight[i]:
-                                                        screenshotRight = screenshotsRight[i+1]
+                                if screenshotsRight == None:
+                                        if screenshotRight == screenshotsRight[len(screenshotsRight)-1]:
+                                                screenshotRight = screenshotsRight[0]
+                                        else:
+                                                for i in range(0, len(screensshotsRight)-1):
+                                                        if screenshotRight == screenshotsRight[i]:
+                                                                screenshotRight = screenshotsRight[i+1]
                                 # screen.blit(screenshotRight, (?,?))
                                 
                 for b in range(12, 16):

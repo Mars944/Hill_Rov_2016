@@ -119,9 +119,7 @@ motorPin4 = 11
 
 # Define Servo Pins
 armExtensionServoPin = 2
-armLRServoPin        = 3
 clawUDServoPin       = 4
-clawRotateServoPin   = 5
 clawOCServoPin       = 7
 camUDServoPin        = 8
 
@@ -148,9 +146,7 @@ if arduinoConnected:
                 print("ESC4 Connected!")
 
                 armExtensionServo = Servo(armExtensionServoPin)
-                armLRServo        = Servo(armLRServoPin)
                 clawUDServo       = Servo(clawUDServoPin)
-                clawRotateServo   = Servo(clawRotateServoPin)
                 clawOCServo       = Servo(clawOCServoPin)
                 camUDServo        = Servo(camUDServoPin)
 
@@ -267,16 +263,12 @@ M4Value = 1500
 # Write Servo's to Default
 """Note: Values may be REVERSED!!!"""
 
-armLRPosition      = 90
 clawUDPosition     = 90
-clawRotatePosition = 90
 clawOCPosition     = 0   # May need to reverse
 camUDPosition      = 90
 
 armExtensionServo.write(180) # May need to Reverse
-armLRServo.write(armLRPosition)
 clawUDServo.write(clawUDPosition)
-clawRotateServo.write(clawRotatePosition) # We may want to make this 360° rotation. Not required.
 clawOCServo.write(clawOCPosition) 
 camUDServo.write(camUDPosition)
 
@@ -335,17 +327,10 @@ while running:
                                                 armExtended = False
 
                                                 # Reset arm servos to default
-                                                armLRPosition      = 90
                                                 clawUDPosition     = 90
-                                                clawRotatePosition = 90
                                                 clawOCPosition     = 0   # May need to reverse
-
-                                                armLRServo.write(armLRPosition)
                                                 clawUDServo.write(clawUDPosition)
-                                                clawRotateServo.write(clawRotatePosition) # We may want to make this 360° rotation. Not required.
                                                 clawOCServo.write(clawOCPosition) # May need to reverse
- 
-                                                # [Code may be required to wait for servos to reset before withdrawing]
 
                                                 armExtensionServo.write(180) # May need to Reverse Value
 
@@ -379,26 +364,12 @@ while running:
                                                         clawUDPosition+=1
                                                         clawUDServo.write(clawUDPosition) 
 
-                        # Right on D-pad
-                        elif b == 5 and armExtended:  # Move Arm Right
-                                if gamepad.get_button(b) == 1:
-                                                if armLRPosition < 180:        
-                                                        armLRPosition+=1
-                                                        clawLRServo.write(armLRPosition) 
-
                         # Down on D-pad
                         elif b == 6 and armExtended:  # Tilt Claw Down
                                 if gamepad.get_button(b) == 1:
                                                 if clawUDPosition > 0:        
                                                         clawUDPosition-=1
                                                         clawUDServo.write(clawUDPosition) 
-
-                        # Left on D-pad
-                        elif b == 7 and armExtended:  # Move Arm Left
-                                if gamepad.get_button(b) == 1:
-                                                if armLRPosition > 0:        
-                                                        armLRPosition-=1
-                                                        clawLRServo.write(armLRPosition) 
 
                         # Left Bumper
                         elif b == 8 and armExtended:  # Open Claw
@@ -413,20 +384,6 @@ while running:
                                         if clawOCPosition < 180:
                                                         clawOCPosition+=1
                                                         clawOCServo.write(clawOCPosition)
-
-                        # Left Trigger
-                        elif b == 10 and armExtended: # Rotate Wrist counterclockwise
-                                if gamepad.get_button(b) == 1:
-                                                if clawRotatePosition > 0:
-                                                        clawRotatePosition-=1
-                                                        clawRotateServo.write(clawRotatePosition)
-
-                        # Right Trigger
-                        elif b == 11 and armExtended: # Rotate Wrist clockwise
-                                if gamepad.get_button(b) == 1:
-                                        if clawRotatePosition < 180:
-                                                        clawRotatePosition+=1
-                                                        clawRotateServo.write(clawRotatePosition)
 
                 # Camera Related Buttons. Tracked seperately from arm servos
                 for b in range(1, 3):
@@ -619,9 +576,7 @@ while running:
                                 print("ESC4 Connected!")
 
                                 armExtensionServo = Servo(armExtensionServoPin)
-                                armLRServo        = Servo(armLRServoPin)
                                 clawUDServo       = Servo(clawUDServoPin)
-                                clawRotateServo   = Servo(clawRotateServoPin)
                                 clawOCServo       = Servo(clawOCServoPin)
                                 camUDServo        = Servo(camUDServoPin)
                         except:
@@ -739,18 +694,10 @@ while running:
 # Quit
 
 # Reset arm Servos to default
-armLRPosition      = 90
 clawUDPosition     = 90
-clawRotatePosition = 90
-clawOCPosition     = 0   # May need to reverse
-
-armLRServo.write(armLRPosition)
+clawOCPosition     = 0            # May need to reverse
 clawUDServo.write(clawUDPosition)
-clawRotateServo.write(clawRotatePosition) # We may want to make this 360° rotation. Not required.
 clawOCServo.write(clawOCPosition) # May need to reverse
-
-# [Code may be required to wait for servos to reset before withdrawing]
-
 armExtensionServo.write(180) # May need to Reverse Value
 
 # Reset Camera Servo to Default

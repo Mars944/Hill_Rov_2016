@@ -72,8 +72,8 @@ RED   = (255, 0, 0)
 ORANGE = (255, 165, 0)
 
 # Used to set window dimensions
-display_width = 1185 # 1185 (Home) 1825 (Hill) (Diff 640)
-display_length = 593 # 593  (Home) 953  (Hill) (Diff 360)
+display_width  = 1208 # 1208 (Home) 1825 (Hill) (Diff 640)
+display_length = 649  # 649  (Home) 953  (Hill) (Diff 360)
 
 # Create Clock object
 clock = pygame.time.Clock() # Will be used for FPS
@@ -191,8 +191,7 @@ for i in range(joystick_count):
 # TextBox Objects
 motorTitleText      =TextBox(40, 700, 50)  # Title: "Motor Values"
 sensTitleText       =TextBox(40, 10, 481)  # Title: "Sensor Values"
-armTitleText        =TextBox(40, 10, 400)  # Title: "Arm Movement:"
-gamepadReminderText =TextBox(20, 10, 423)  # Reminder: Reminds user to mash playstation button after reconnect
+gamepadReminderText =TextBox(20, 1, 395)   # Reminder: Reminds user to mash playstation button after reconnect
 valArmText          =TextBox(40, 170, 400) # Data: Arm Values
 valMotorsText       =TextBox(30, 700, 90)  # Data: Motor Values
 camDisconnectedText =TextBox(40, 10, 10)   # Disconnect: Warns that Camera is Disconnected
@@ -293,21 +292,20 @@ while running:
 
         # Attemp to Display Video Feed
         if camConnected:
-                screen.blit(pygame.transform.scale(cam.get_image(), (480,360)), (0,0))
+                screen.blit(pygame.transform.scale(cam.get_image(), (524,393)), (0,0))
         else:
                 camDisconnectedText.Print(screen, "CAMERA DISCONNECTED.")
 
         # Displays screenshots
-        pygame.draw.rect(screen, ORANGE,(510, 343, 673, 250))
+        pygame.draw.rect(screen, ORANGE,(535, 399, 673, 250))
         if screenshotLeft != None:
-                screen.blit(pygame.transform.scale(screenshotLeft, (320,240)), (523, 353))
+                screen.blit(pygame.transform.scale(screenshotLeft, (320,240)), (548, 409)) # 523
         if screenshotRight != None:
-                screen.blit(pygame.transform.scale(screenshotRight, (320,240)), (853,353))
+                screen.blit(pygame.transform.scale(screenshotRight, (320,240)), (876,409))
         
         # Display Titles
         motorTitleText.Print(screen, "Motor Values:")
         sensTitleText.Print(screen, "Sensor Values:")
-        armTitleText.Print(screen, "Arm Values: ")
         gamepadReminderText.Print(screen, "Mash <Playstation Button> after Reconnect!")
 
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

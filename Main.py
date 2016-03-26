@@ -710,9 +710,8 @@ quit()
 
 """
 
-- Once Connected, joystick can not be reconnected.
-- Camera reconnection has not been tested
-- Motors have not been tested.
+- Once Connected, joystick, camera, & arduino can not be reconnected.
+- Motors algorithms suck. Fix them.
 
 """
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

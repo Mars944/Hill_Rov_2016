@@ -65,15 +65,16 @@ class TextBox:  # Creates an object to work similarly to a text box.
 # Define GUI Variables
 
 # Define Colors
-BLACK = (0,0,0)
-WHITE = (255,255,255)
-GRAY  = (211, 211, 211)
-RED   = (255, 0, 0)
+BLACK  = (0,0,0)
+WHITE  = (255,255,255)
+GRAY   = (211, 211, 211)
+RED    = (255, 0, 0)
 ORANGE = (255, 165, 0)
 
 # Used to set window dimensions
-display_width  = 1208 # 1208 (Home) 1825 (Hill) (Diff 640)
-display_length = 649  # 649  (Home) 953  (Hill) (Diff 360)
+display_width  = 1208                       # 1208 (Home) 1825 (Hill) (Diff 640)
+display_length = 649                        # 649  (Home) 953  (Hill) (Diff 360)
+display_hyp    = int((649**2 +1208**2)**.5) # Only used to set dimensions dependent on length and width.
 
 # Create Clock object
 clock = pygame.time.Clock() # Will be used for FPS
@@ -189,23 +190,25 @@ for i in range(joystick_count):
 
 """"""
 # TextBox Objects
-motorTitleText      =TextBox(40, 700, 50)  # Title: "Motor Values"
-sensTitleText       =TextBox(40, 10, 481)  # Title: "Sensor Values"
-gamepadReminderText =TextBox(20, 1, 395)   # Reminder: Reminds user to mash playstation button after reconnect
-valArmText          =TextBox(40, 170, 400) # Data: Arm Values
-valMotorsText       =TextBox(30, 700, 90)  # Data: Motor Values
-camDisconnectedText =TextBox(40, 10, 10)   # Disconnect: Warns that Camera is Disconnected
+motorTitleText      =TextBox(int(display_hyp*(40/1371)), int(display_width*(700/1208)), int(display_length*(50/649)))  # Title: "Motor Values"
+sensTitleText       =TextBox(int(display_hyp*(40/1371)), int(display_width*(10/1208)),  int(display_length*(481/649))) # Title: "Sensor Values"
+gamepadReminderText =TextBox(int(display_hyp*(20/1371)), int(display_width*(1/1208)),   int(display_length*(395/649))) # Reminder: Reminds user to mash playstation button after reconnect
+valArmText          =TextBox(int(display_hyp*(40/1371)), int(display_width*(170/1208)), int(display_length*(400/649))) # Data: Arm Values
+valMotorsText       =TextBox(int(display_hyp*(30/1371)), int(display_width*(700/1208)), int(display_length*(90/649)))  # Data: Motor Values
+camDisconnectedText =TextBox(int(display_hyp*(40/1371)), int(display_width*(10/1208)),  int(display_length*(10/649)))  # Disconnect: Warns that Camera is Disconnected
 
 # Changes Color of certain TextBoxs
 gamepadReminderText.changeColor(RED)
 camDisconnectedText.changeColor(RED)
 
 """"""
+# General Variables
 
-running = True   # Checks to see if the program is still running. Set False by quiting.
+running = True   # Breaks loop if False.
 
 """"""
 # Band-Aid for throttle. 
+
 notMoved = True  # Checks to see if throttle has been moved from 0.
 throttle = 0     # Define throttle to start at 0.
 
@@ -222,13 +225,7 @@ else:
         a24 = 0
         a25 = 0
 
-
 checkCount = 0 # Counts to 50 to see if ps3 axes 23-25 are equal all 50 times.
-
-# Arm variables
-extendingCount = 0   # Counts to 50 to allow the arm enough time to withdraw/extend
-extensionWait = 450  # UNTESTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-armExtended = False  # The program starts with the arm withdrawn
 
 """"""
 # Screenshot Variables
@@ -260,13 +257,13 @@ M4Value = 1500
 """"""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Write Servo's to Default
-"""Note: Values may be REVERSED!!!"""
 
-clawUDPosition     = 90
-clawOCPosition     = 0   # May need to reverse
-camUDPosition      = 90
+clawUDPosition       = 90
+clawOCPosition       = 0   # May need to reverse
+camUDPosition        = 90  # May need to Reverse
+armExtensionPosition = 180
 
-armExtensionServo.write(180) # May need to Reverse
+armExtensionServo.write(armExtensionPosition) 
 clawUDServo.write(clawUDPosition)
 clawOCServo.write(clawOCPosition) 
 camUDServo.write(camUDPosition)
@@ -284,11 +281,11 @@ while running:
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Reset Display
 
-        # Reset TextBox's
+        # Reset Value TextBox's
         valMotorsText.reset()
         valArmText.reset()
 
-        screen.fill(GRAY) # Reset Screen to grey
+        screen.fill(GRAY) # Reset Screen to gray
 
         # Attemp to Display Video Feed
         if camConnected:
@@ -297,9 +294,9 @@ while running:
                 camDisconnectedText.Print(screen, "CAMERA DISCONNECTED.")
 
         # Displays screenshots
-        pygame.draw.rect(screen, ORANGE,(535, 399, 673, 250))
+        pygame.draw.rect(screen, ORANGE,(535, 399, 673, 250)) # 535 399 673 250
         if screenshotLeft != None:
-                screen.blit(pygame.transform.scale(screenshotLeft, (320,240)), (548, 409)) # 523
+                screen.blit(pygame.transform.scale(screenshotLeft, (320,240)), (548, 409))
         if screenshotRight != None:
                 screen.blit(pygame.transform.scale(screenshotRight, (320,240)), (876,409))
         
@@ -314,77 +311,51 @@ while running:
         """ Presume Up & Right to be +1. May need to reverse on a case by case basis. """
 
         if gamepadConnected:
-                for b in range(0, 12):
-                        # Select Button
-                        if b == 0: # Withdraw Arm
-                                pressed = gamepad.get_button(b)
-                                if extendingCount != 0:
-                                       pressed = 1 
-                                if pressed == 1: 
-                                        if extendingCount != 0:
-                                                armExtended = False
-
-                                                # Reset arm servos to default
-                                                clawUDPosition     = 90
-                                                clawOCPosition     = 0   # May need to reverse
-                                                clawUDServo.write(clawUDPosition)
-                                                clawOCServo.write(clawOCPosition) # May need to reverse
-
-                                                armExtensionServo.write(180) # May need to Reverse Value
-
-                                        # Attempt to wait for arm withdraw(WAIT TIME UNTESTED!!!)
-                                        if extendingCount < extensionWait:
-                                                extendingCount += 1
-                                                break
-                                        else:
-                                                extendingCount = 0
-
-                        # Start Button
-                        elif b == 3: # Extend Arm
-                                pressed = gamepad.get_button(b) == 1
-                                if extendingCount != 0:
-                                        pressed = 1
-                                if pressed == 1:
-                                        if extendingCount != 0:
-                                                armExtended = True
-                                                armExtensionServo.write(0) # May need to Reverse value
-
-                                        if extendingCount < extensionWait:
-                                                extendingCount += 1
-                                                break
-                                        else:
-                                                extendingCount = 0
-                                
+                for b in [4, 6, 8, 9, 10, 11]:
+        
                         # Up on D-pad
-                        elif b == 4 and armExtended: # Tilt Claw Up
+                        if b == 4: # Extend Arm
                                 if gamepad.get_button(b) == 1:
-                                                if clawUDPosition < 180:
-                                                        clawUDPosition+=1
-                                                        clawUDServo.write(clawUDPosition) 
+                                                if armExtensionPosition < 180:
+                                                        armExtensionPosition+=1
+                                                        armExtensionServo.write(armExtensionPosition) 
 
                         # Down on D-pad
-                        elif b == 6 and armExtended:  # Tilt Claw Down
+                        elif b == 6: # Withdraw Arm
                                 if gamepad.get_button(b) == 1:
-                                                if clawUDPosition > 0:        
-                                                        clawUDPosition-=1
-                                                        clawUDServo.write(clawUDPosition) 
+                                                if armExtensionPosition > 0:        
+                                                        armExtensionPosition-=1
+                                                        armExtensionServo.write(armExtensionPosition) 
 
                         # Left Bumper
-                        elif b == 8 and armExtended:  # Open Claw
+                        elif b == 8: # Open Claw
                                 if gamepad.get_button(b) == 1:
                                                 if clawOCPosition > 0:
                                                         clawOCPosition-=1
                                                         clawOCServo.write(clawOCPosition) 
 
                         # Right Bumper
-                        elif b == 9 and armExtended:  # Close Claw
+                        elif b == 9: # Close Claw
                                 if gamepad.get_button(b) == 1:
                                         if clawOCPosition < 180:
                                                         clawOCPosition+=1
                                                         clawOCServo.write(clawOCPosition)
+                        # Left Trigger
+                        elif b == 10: # Tilt Claw Down
+                                if gamepad.get_button(b) == 1:
+                                                if clawUDPosition > 0:
+                                                        clawUDPosition-=1
+                                                        clawUDServo.write(clawUDPosition) 
+
+                        # Right Trigger
+                        elif b == 11: # Tilt Claw Up
+                                if gamepad.get_button(b) == 1:
+                                        if clawUDPosition < 180:
+                                                        clawUDPosition+=1
+                                                        clawUDServo.write(clawUDPosition)
 
                 # Camera Related Buttons. Tracked seperately from arm servos
-                for b in range(1, 3):
+                for b in [1, 2]:
                         # Left Joystick
                         if b == 1:                  # Flip through saved Left Screenshots
                                 if ssWaitL == 0:
@@ -419,7 +390,7 @@ while running:
                                         if ssWaitR >= 10:
                                                 ssWaitR = 0
                                 
-                for b in range(12, 16):
+                for b in [12, 13, 14, 15]:
                         # Triangle Button
                         if b == 12:                 # Move Camera Servo Up
                                 if gamepad.get_button(b) == 1:
@@ -461,7 +432,7 @@ while running:
                                         if squareWait >= 10:
                                                 squareWait = 0   
 
-                # Check motion tracker to see if controller is disconnected.
+                # Check motion tracker to see if gamepad is disconnected.
                 OGa23 = a23
                 OGa24 = a24
                 OGa25 = a25
@@ -472,11 +443,12 @@ while running:
                 
                 if OGa23==a23 and OGa24==a24 and OGa25==a25:
                         checkCount += 1
+                        if checkCount == 100:
+                                gamepadConnected = False
+                                checkCount = 0
                 else:
                         checkCount = 0
-                if OGa23==a23 and OGa24==a24 and OGa25==a25 and checkCount == 100:
-                        gamepadConnected=False
-                        checkCount = 0
+                        
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Reads Joystick input if Joystick and Ardunio are both connected.
 

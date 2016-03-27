@@ -664,16 +664,19 @@ while running:
 # Quit
 
 # Reset arm Servos to default
-clawUDPosition     = 90
-clawOCPosition     = 0            # May need to reverse
+clawUDPosition       = 90
+clawOCPosition       = 0            # May need to reverse
+armExtensionPosition = 180          # May need to reverse
+
 clawUDServo.write(clawUDPosition)
-clawOCServo.write(clawOCPosition) # May need to reverse
-armExtensionServo.write(180) # May need to Reverse Value
+clawOCServo.write(clawOCPosition)
+armExtensionServo.write(armExtensionPosition)
 
 # Reset Camera Servo to Default
 camUDPosition= 90
 camUDServo.write(camUDPosition)
 
+# Quit
 pygame.quit()
 quit()
 

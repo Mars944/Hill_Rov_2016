@@ -5,9 +5,10 @@
 # 2. Global Classes
 # 3. Define GUI Variables
 # 4. Create Window
-# 5. Connect to arduino
-# 6. Pygame Initializations
-# 7. Joystick/Gamepad Variables & Setup
+# 5. Attempts to connect to Camera
+# 6. Connect to arduino
+# 7. Pygame Initializations
+# 8. Joystick/Gamepad Variables & Setup
 # 9. Global Variables for Main Loop
 # 10. Write Servo's to Default
 # 11. Main Loop
@@ -82,6 +83,9 @@ clock = pygame.time.Clock() # Will be used for FPS
 # Window's Icon
 icon = pygame.image.load('resources/Hill_Logo.png')
 
+# Connecting Text
+connectingText = TextBox(80, display_width/2, display_length/2)
+"""^^This is going to display the text while arduino and stuff connects. Start Editing here. :)^^"""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Create Window
 
@@ -89,6 +93,7 @@ pygame.display.set_icon(icon)                                     # Sets Window'
 screen = pygame.display.set_mode((display_width, display_length)) # Creates Window/screen
 pygame.display.set_caption("The Hill ROV Companion App")          # Sets Window's Title
 
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Attempts to connect to Camera
 camConnected = True
 try:

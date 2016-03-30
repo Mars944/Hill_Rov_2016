@@ -479,46 +479,40 @@ while running:
                         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
                         # Update Motor Values
                         
-                        # Left-Right (Not Done)
+                        # Left-Right
                         if a == 0:
                               pass # Not Yet Written  
 
-                        # Forward-Backward (Done)
+                        #Forward-Backward
                         elif a == 1: 
                                 valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500-(400*throttle), 1500+(400*throttle))
                                 M1Value = valAxis
                                 M2Value = valAxis
 
-                        # Yaw (Untested)
+                        # Yaw
                         elif a == 2:
-                                yawChange = joystick.get_axis(a) # [-1 to 1]
-                                yaw = yawChange * 200 * throttle # 200 can equal up to 400
+                                yawChange = changeInterval(joystick.get_axis(a), -1, 1, -50, 50)/100 # Remaps Yaw's interval from [-1, 1] to [-50, 50]%
 
-                                # If M2Value is Increasing
-                                if yawChange < 0
-                                	if M2Value+yaw > 1900:   # Checks to see if new M2Value > 1900. If so, Offputs change to M1Value
-                                		M2Value = 1900
-                                		M1Value = M1Value - yaw - (M2Value+yaw) + 1900
-                                	elif M1Value-yaw < 1100: # Checks to see if new M1Value < 1100. If so, Offputs change to M2Value
-                                		M1Value = 1100
-                                		M2Value = M2Value + yaw + (M1Value-yaw) - 1100
-                                	else:
-                                		M1Value = M1Value + yaw
-                                		M2Value = M2Value - yaw
-                                
-                                # If M1Value is Increasing.
-                                elif yawChange > 0:
-                                	if M1Value+yaw > 1900:   # Checks to see if new M1Value > 1900. If so, Offputs change to M2Value
-                                		M1Value = 1900
-                                		M2Value = M2Value - yaw - (M1Value+yaw) + 1900
-                                	elif M2Value-yaw < 1100: # Checks to see if new M2Value < 1100. If so, Offputs change to M1Value
-                                		M2Value = 1100
-                                		M1Value = M1Value + yaw + (M2Value-yaw) - 1100
-                                	else:
-                                		M1Value = M1Value + yaw
-                                		M2Value = M2Value - yaw
+                                # Backwards Yaw BROKEN! 
+                                if yawChange != 25: #Not Neccessary, but it saves the program from running the following code.
+                                        if yawChange > 0: 
+                                                if M1Value < 1500:   # If in Reverse (Broken)
+                                                        M1Value = M1Value - (400*throttle*yawChange)
+                                                elif M1Value > 1500: # If Forward
+                                                        M1Value = M1Value + (400*throttle*yawChange)
+                                                else:                # If not moving forward/Backward
+                                                        M1Value = 1500+200*throttle/100
+                                                        M2Value = 1500-200*throttle/100
+                                        elif yawChange < 0:          
+                                                if M2Value < 1500:   # If in Reverse (Broken)
+                                                        M2Value = M2Value + (400*throttle*yawChange)
+                                                elif M2Value > 1500: # If Forward
+                                                        M2Value = M2Value - (400*throttle*yawChange)
+                                                else:                # If not moving forward/Backward
+                                                         M1Value = 1500-200*throttle
+                                                         M2Value = 1500+200*throttle
 
-                # Up/Down (Untested)
+                # Up/Down
                 if joystick.get_hat(0) == (0, 1):
                         M3Value = 1500+(400*throttle)
                         M4Value = 1500+(400*throttle)

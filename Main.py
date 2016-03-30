@@ -254,7 +254,7 @@ ssDisplayedIndexR = 0    # Stores index of screenshotsRight being displayed
 """"""
 # Define Motor Values at default (in mS).
 
-M1Value = 1500
+M3Value = 1500
 M2Value = 1500
 M3Value = 1500
 M4Value = 1500
@@ -479,14 +479,39 @@ while running:
                         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
                         # Update Motor Values
                         
-                        # Left-Right (Not Done)
+                        # Left-Right (Untested)
                         if a == 0:
-                              pass # Not Yet Written  
+                        	crabChange = joystick.get_axis(a) # [-1 to 1]
+                                crab = crabChange * 200 * throttle # 200 can equal up to 400
+
+                                # If M4Value is Increasing
+                                if crabChange < 0
+                                	if M4Value+crab > 1900:   # Checks to see if new M4Value > 1900. If so, Offputs change to M3Value
+                                		M4Value = 1900
+                                		M3Value = M3Value - crab - (M4Value+crab) + 1900
+                                	elif M3Value-crab < 1100: # Checks to see if new M3Value < 1100. If so, Offputs change to M4Value
+                                		M3Value = 1100
+                                		M4Value = M4Value + crab + (M3Value-crab) - 1100
+                                	else:
+                                		M3Value = M3Value + crab
+                                		M4Value = M4Value - crab
+                                
+                                # If M3Value is Increasing.
+                                elif crabChange > 0:
+                                	if M3Value+crab > 1900:   # Checks to see if new M3Value > 1900. If so, Offputs change to M4Value
+                                		M3Value = 1900
+                                		M4Value = M4Value - crab - (M3Value+crab) + 1900
+                                	elif M4Value-crab < 1100: # Checks to see if new M4Value < 1100. If so, Offputs change to M3Value
+                                		M4Value = 1100
+                                		M3Value = M3Value + crab + (M4Value-crab) - 1100
+                                	else:
+                                		M3Value = M3Value + crab
+                                		M4Value = M4Value - crab 
 
                         # Forward-Backward (Done)
                         elif a == 1: 
                                 valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500-(400*throttle), 1500+(400*throttle))
-                                M1Value = valAxis
+                                M3Value = valAxis
                                 M2Value = valAxis
 
                         # Yaw (Untested)
@@ -496,26 +521,26 @@ while running:
 
                                 # If M2Value is Increasing
                                 if yawChange < 0
-                                	if M2Value+yaw > 1900:   # Checks to see if new M2Value > 1900. If so, Offputs change to M1Value
+                                	if M2Value+yaw > 1900:   # Checks to see if new M2Value > 1900. If so, Offputs change to M3Value
                                 		M2Value = 1900
-                                		M1Value = M1Value - yaw - (M2Value+yaw) + 1900
-                                	elif M1Value-yaw < 1100: # Checks to see if new M1Value < 1100. If so, Offputs change to M2Value
-                                		M1Value = 1100
-                                		M2Value = M2Value + yaw + (M1Value-yaw) - 1100
+                                		M3Value = M3Value - yaw - (M2Value+yaw) + 1900
+                                	elif M3Value-yaw < 1100: # Checks to see if new M3Value < 1100. If so, Offputs change to M2Value
+                                		M3Value = 1100
+                                		M2Value = M2Value + yaw + (M3Value-yaw) - 1100
                                 	else:
-                                		M1Value = M1Value + yaw
+                                		M3Value = M3Value + yaw
                                 		M2Value = M2Value - yaw
                                 
-                                # If M1Value is Increasing.
+                                # If M3Value is Increasing.
                                 elif yawChange > 0:
-                                	if M1Value+yaw > 1900:   # Checks to see if new M1Value > 1900. If so, Offputs change to M2Value
-                                		M1Value = 1900
-                                		M2Value = M2Value - yaw - (M1Value+yaw) + 1900
-                                	elif M2Value-yaw < 1100: # Checks to see if new M2Value < 1100. If so, Offputs change to M1Value
+                                	if M3Value+yaw > 1900:   # Checks to see if new M3Value > 1900. If so, Offputs change to M2Value
+                                		M3Value = 1900
+                                		M2Value = M2Value - yaw - (M3Value+yaw) + 1900
+                                	elif M2Value-yaw < 1100: # Checks to see if new M2Value < 1100. If so, Offputs change to M3Value
                                 		M2Value = 1100
-                                		M1Value = M1Value + yaw + (M2Value-yaw) - 1100
+                                		M3Value = M3Value + yaw + (M2Value-yaw) - 1100
                                 	else:
-                                		M1Value = M1Value + yaw
+                                		M3Value = M3Value + yaw
                                 		M2Value = M2Value - yaw
 
                 # Up/Down (Untested)
@@ -610,7 +635,7 @@ while running:
 
         # Display Value of all motors
         if joystickConnected and arduinoConnected:
-                valMotorsText.Print(screen, "Motor 1: " + str(M1Value))
+                valMotorsText.Print(screen, "Motor 1: " + str(M3Value))
                 valMotorsText.newLine()
 
                 valMotorsText.Print(screen, "Motor 2: " + str(M2Value))
@@ -651,10 +676,10 @@ while running:
 
         # Limits to motorMax & MotorMin
         if arduinoConnected:
-                if M1Value > 1500:
-                        motor1.writeMicroseconds(min(M1Value, motorMax))
-                elif M1Value < 1500:
-                        motor1.writeMicroseconds(max(M1Value, motorMin))
+                if M3Value > 1500:
+                        motor1.writeMicroseconds(min(M3Value, motorMax))
+                elif M3Value < 1500:
+                        motor1.writeMicroseconds(max(M3Value, motorMin))
                                 
                 if M2Value > 1500:
                         motor2.writeMicroseconds(min(M2Value, motorMax))

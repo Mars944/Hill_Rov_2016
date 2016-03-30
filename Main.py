@@ -84,7 +84,7 @@ clock = pygame.time.Clock() # Will be used for FPS
 icon = pygame.image.load('resources/Hill_Logo.png')
 
 # Connecting Text
-#connectingText = TextBox(80, display_width/2, display_length/2)
+connectingText = TextBox(80, int(display_width/2), int(display_length/2)
 """^^This is going to display the text while arduino and stuff connects. Start Editing here. :)^^"""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Create Window

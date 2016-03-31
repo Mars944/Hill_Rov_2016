@@ -496,20 +496,8 @@ while running:
                                 crabChange = joystick.get_axis(a)  # [-1 to 1]
                                 crab = crabChange * 200 * throttle # 200 can equal up to 400
 
-                                # If M4Value is Increasing
+                                # If M3Value is Increasing
                                 if crabChange < 0:
-                                        if M4Value+crab > 1900:   # Checks to see if new M4Value > 1900. If so, Offputs change to M3Value
-                                                M4Value = 1900
-                                                M3Value = M3Value - crab - (M4Value+crab) + 1900
-                                        elif M3Value-crab < 1100: # Checks to see if new M3Value < 1100. If so, Offputs change to M4Value
-                                                M3Value = 1100
-                                                M4Value = M4Value + crab + (M3Value-crab) - 1100
-                                        else:
-                                                M3Value = M3Value + crab
-                                                M4Value = M4Value - crab
-                                
-                                # If M3Value is Increasing.
-                                elif crabChange > 0:
                                         if M3Value+crab > 1900:   # Checks to see if new M3Value > 1900. If so, Offputs change to M4Value
                                                 M3Value = 1900
                                                 M4Value = M4Value - crab - (M3Value+crab) + 1900
@@ -517,8 +505,20 @@ while running:
                                                 M4Value = 1100
                                                 M3Value = M3Value + crab + (M4Value-crab) - 1100
                                         else:
-                                                M3Value = M3Value + crab
-                                                M4Value = M4Value - crab
+                                                M4Value = M4Value + crab
+                                                M3Value = M3Value - crab
+                                
+                                # If M4Value is Increasing.
+                                elif crabChange > 0:
+                                        if M4Value+crab > 1900:   # Checks to see if new M4Value > 1900. If so, Offputs change to M3Value
+                                                M4Value = 1900
+                                                M3Value = M3Value - crab - (M4Value+crab) + 1900
+                                        elif M3Value-crab < 1100: # Checks to see if new M3Value < 1100. If so, Offputs change to M4Value
+                                                M3Value = 1100
+                                                M4Value = M4Value + crab + (M3Value-crab) - 1100
+                                        else:
+                                                M4Value = M4Value + crab
+                                                M3Value = M3Value - crab
 
                         #Forward-Backward
                         elif a == 1: 

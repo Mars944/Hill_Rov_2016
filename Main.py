@@ -359,7 +359,7 @@ while running:
                                                         clawUDPosition+=1
                                                         clawUDServo.write(clawUDPosition)
 
-                # Camera Related Buttons. Tracked seperately from arm servos
+                # Camera Related Buttons. Tracked separately from arm servos
                 for b in [1, 2]:
                         # Left Joystick
                         if b == 1:                  # Flip through saved Left Screenshots
@@ -731,6 +731,7 @@ quit()
 
 - Once Connected, joystick, camera, & arduino can not be reconnected.
 - Motors algorithms suck. Fix them.
+-Power must be turned on before arduino.
 
 """
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

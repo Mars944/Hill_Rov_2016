@@ -461,6 +461,18 @@ while running:
 
                 numAxes = joystick.get_numaxes() # Gets number of axis on Joystick
 
+
+                # Up/Down
+                if joystick.get_hat(0) == (-1, 1) or joystick.get_hat(0) == (0, 1) or joystick.get_hat(0) == (1, 1):
+                        M3Value = 1500+(400*throttle)
+                        M4Value = 1500+(400*throttle)
+                elif joystick.get_hat(0) == (-1, -1) or joystick.get_hat(0) == (0, -1) or joystick.get_hat(0) == (1, -1):
+                        M3Value = 1500-(400*throttle)
+                        M4Value = 1500-(400*throttle)
+                else:
+                        M3Value = 1500
+                        M4Value = 1500
+
                 # Loops through each axis
                 for a in range( numAxes-1 ):
                             
@@ -478,18 +490,6 @@ while running:
                                         
                         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
                         # Update Motor Values
-
-                        # Up/Down
-                        if joystick.get_hat(0) == (-1, 1) or joystick.get_hat(0) == (0, 1) or joystick.get_hat(0) == (1, 1):
-                                M3Value = 1500+(400*throttle)
-                                M4Value = 1500+(400*throttle)
-                        elif joystick.get_hat(0) == (-1, -1) or joystick.get_hat(0) == (0, -1) or joystick.get_hat(0) == (1, -1):
-                                M3Value = 1500-(400*throttle)
-                                M4Value = 1500-(400*throttle)
-                        else:
-                                M3Value = 1500
-                                M4Value = 1500
-
                         
                         # Crab
                         if a == 0:
@@ -518,7 +518,7 @@ while running:
                                                 M3Value = M3Value + crab + (M4Value-crab) - 1100
                                         else:
                                                 M3Value = M3Value + crab
-                                                M4Value = M4Value - crab  
+                                                M4Value = M4Value - crab
 
                         #Forward-Backward
                         elif a == 1: 

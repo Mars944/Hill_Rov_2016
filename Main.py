@@ -84,8 +84,8 @@ clock = pygame.time.Clock() # Will be used for FPS
 icon = pygame.image.load('resources/Hill_Logo.png')
 
 # Connecting Text
-connectingText = TextBox(80, int(display_width/2), int(display_length/2)
-"""^^This is going to display the text while arduino and stuff connects. Start Editing here. :)^^"""
+#connectingText = TextBox(80, int(display_width/2), int(display_length/2)
+#^^This is going to display the text while arduino and stuff connects. Start Editing here. :)^^
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Create Window
 
@@ -478,10 +478,22 @@ while running:
                                         
                         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
                         # Update Motor Values
+
+                        # Up/Down
+                        if joystick.get_hat(0) == (-1, 1) or joystick.get_hat(0) == (0, 1) or joystick.get_hat(0) == (1, 1):
+                                M3Value = 1500+(400*throttle)
+                                M4Value = 1500+(400*throttle)
+                        elif joystick.get_hat(0) == (-1, -1) or joystick.get_hat(0) == (0, -1) or joystick.get_hat(0) == (1, -1):
+                                M3Value = 1500-(400*throttle)
+                                M4Value = 1500-(400*throttle)
+                        else:
+                                M3Value = 1500
+                                M4Value = 1500
+
                         
-                        # Left-Right
+                        # Crab
                         if a == 0:
-                                crabChange = joystick.get_axis(a) # [-1 to 1]
+                                crabChange = joystick.get_axis(a)  # [-1 to 1]
                                 crab = crabChange * 200 * throttle # 200 can equal up to 400
 
                                 # If M4Value is Increasing
@@ -542,14 +554,6 @@ while running:
                                         else:
                                                 M1Value = M1Value + yaw
                                                 M2Value = M2Value - yaw 
-
-                # Up/Down
-                if joystick.get_hat(0) == (0, 1):
-                        M3Value = 1500+(400*throttle)
-                        M4Value = 1500+(400*throttle)
-                elif joystick.get_hat(0) == (0, -1):
-                        M3Value = 1500-(400*throttle)
-                        M4Value = 1500-(400*throttle)
 
                                   
         # If arduino is disconnected, try to reconnect
@@ -638,7 +642,7 @@ while running:
         if throttle == 0:
                 valMotorsText.changeColor(RED)
 
-        valMotorsText.Print(screen, "Throttle: " + str(throttle))
+        valMotorsText.Print(screen, "Throttle: " + str(int(throttle*100)) + "%")
         valMotorsText.newLine()
 
         # Display Value of all motors

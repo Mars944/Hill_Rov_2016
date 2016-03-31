@@ -622,7 +622,15 @@ while running:
                                 print("Joystick Connected!")
                         else:
                                 print("Unsupported Harware Ignored.")  
-                        
+        
+        """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""                
+        # Round M_Values to Integers before processing.
+        
+        M1Value = int(M1Value)
+        M2Value = int(M2Value)
+        M3Value = int(M3Value)
+        M4Value = int(M4Value)
+
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Update GUI        
 
@@ -674,7 +682,7 @@ while running:
         motorMax = 1700
         motorMin = 1300
 
-        # Limits to motorMax & MotorMin
+        # Limits & writes M_Values to ESC's
         if arduinoConnected:
                 if M1Value > 1500:
                         motor1.writeMicroseconds(min(M1Value, motorMax))

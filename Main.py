@@ -688,22 +688,29 @@ while running:
                         motor1.writeMicroseconds(min(M1Value, motorMax))
                 elif M1Value < 1500:
                         motor1.writeMicroseconds(max(M1Value, motorMin))
-                                
+                else:
+                        motor1.writeMicroseconds(M1Value)
+
                 if M2Value > 1500:
                         motor2.writeMicroseconds(min(M2Value, motorMax))
                 elif M2Value < 1500:
                         motor2.writeMicroseconds(max(M2Value, motorMin))
+                else:
+                        motor2.writeMicroseconds(M2Value)
 
                 if M3Value > 1500:
                         motor3.writeMicroseconds(min(M3Value, motorMax))
                 elif M3Value < 1500:
                         motor3.writeMicroseconds(max(M3Value, motorMin))
+                else:
+                        motor3.writeMicroseconds(M3Value)
 
                 if M4Value > 1500:
                         motor4.writeMicroseconds(min(M4Value, motorMax))
                 elif M4Value < 1500:
-                        motor4.writeMicroseconds(max(M4Value, motorMin)) 
-
+                        motor4.writeMicroseconds(max(M4Value, motorMin))
+                else:
+                        motor4.writeMicroseconds(M4Value)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Quit
 

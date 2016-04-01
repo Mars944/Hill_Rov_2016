@@ -3,7 +3,6 @@
 """May Require that ctypes be imported into Main.py"""
 
 from nanpy import wire
-from ctypes import (c_uint8, c_uint16, c_uint32)
 
 # I2C Addresses (Hex Values)
 TSYS01_ADDR=0x77  
@@ -81,8 +80,4 @@ class TSYS01(): # Temperature Sensor object
         def __calculate__(self):
                 self._adc = c_uint32(self._D1/256)
 
-                TEMP =  (-2) * float(self._C[1]) / 1000000000000000000000.0 * self.adc**4 +
-                        4 * float(self._C[2]) / 10000000000000000.0 * self._adc**3 +
-                        (-2) * float(self._C[3]) / 100000000000.0 * self._adc**2 +
-                        1 * float(self._C[4]) / 1000000.0 * self._adc +
-                        (-1.5) * float(self._C[5]) / 100.0
+                TEMP =  (-2) * float(self._C[1]) / 1000000000000000000000.0 * self.adc**4 + 4 * float(self._C[2]) / 10000000000000000.0 * self._adc**3 +(-2) * float(self._C[3]) / 100000000000.0 * self._adc**2 +1 * float(self._C[4]) / 1000000.0 * self._adc +(-1.5) * float(self._C[5]) / 100.0

@@ -23,6 +23,7 @@ import pygame.camera                                        # Experimental
 from nanpy import (ArduinoApi, SerialManager, Servo, wire)  # Arduino Api & Libraries for slavery
 from time import sleep                                      # Used for time.sleep() function
 from ROVFunctions import changeInterval
+from TSYS01 import TSYS01
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""        
 # Global Classes
@@ -274,6 +275,13 @@ clawOCServo.write(clawOCPosition)
 camUDServo.write(camUDPosition)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+# Create TSYS01 object
+
+temperatureSensor = TSYS01(arduino)
+
+
+
 # Main Loop
 
 while running:

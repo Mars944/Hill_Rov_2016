@@ -23,7 +23,7 @@ import pygame.camera                                        # Experimental
 from nanpy import (ArduinoApi, SerialManager, Servo, wire)  # Arduino Api & Libraries for slavery
 from time import sleep                                      # Used for time.sleep() function
 from ROVFunctions import changeInterval
-from TSYS01 import TSYS01
+#from TSYS01 import TSYS01
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""        
 # Global Classes
@@ -273,12 +273,12 @@ armExtensionServo.write(armExtensionPosition)
 clawUDServo.write(clawUDPosition)
 clawOCServo.write(clawOCPosition) 
 camUDServo.write(camUDPosition)
-
+sleep(5)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 # Create TSYS01 object
 
-temperatureSensor = TSYS01(arduino)
+#temperatureSensor = TSYS01(arduino)
 
 
 
@@ -338,29 +338,33 @@ while running:
                                 if gamepad.get_button(b) == 1:
                                                 if armExtensionPosition > 0:        
                                                         armExtensionPosition-=1
-                                                        armExtensionServo.write(armExtensionPosition) 
+                                                        armExtensionServo.write(armExtensionPosition)  
 
-                        # Left Bumper
-                        elif b == 8: # Open Claw
-                                if gamepad.get_button(b) == 1:
-                                                if clawOCPosition > 0:
-                                                        clawOCPosition-=1
-                                                        clawOCServo.write(clawOCPosition) 
-
-                        # Right Bumper
+                        # Right Trigger (Future Dylan: Their Triggers are your Bumpers. Love Past Dylan)
                         elif b == 9: # Close Claw
                                 if gamepad.get_button(b) == 1:
                                         if clawOCPosition < 180:
-                                                        clawOCPosition+=1
-                                                        clawOCServo.write(clawOCPosition)
+                                                print("Right")
+                                                clawOCPosition+=1
+                                                clawOCServo.write(clawOCPosition)
+
                         # Left Trigger
+                        elif b == 8: # Open Claw
+                                if gamepad.get_button(b) == 1:
+                                        if clawOCPosition > 0:
+                                                print("Left")
+                                                clawOCPosition-=1
+                                                clawOCServo.write(clawOCPosition)
+
+                        
+                        # Left Bumper
                         elif b == 10: # Tilt Claw Down
                                 if gamepad.get_button(b) == 1:
                                                 if clawUDPosition > 0:
                                                         clawUDPosition-=1
                                                         clawUDServo.write(clawUDPosition) 
 
-                        # Right Trigger
+                        # Right Bumper
                         elif b == 11: # Tilt Claw Up
                                 if gamepad.get_button(b) == 1:
                                         if clawUDPosition < 180:

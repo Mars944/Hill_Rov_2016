@@ -23,38 +23,38 @@ class TSYS01(): # Temperature Sensor object
                 self.arduino = arduino
 
                 # Reset the TSYS01, per datasheet
-                wire.beginTransmission(TSYS01_ADDR)
-                wire.write(TSYS01_RESET)
-                wire.endTransmission()
+                self.arduino.wire.beginTransmission(TSYS01_ADDR)
+                self.arduino.wire.write(TSYS01_RESET)
+                self.arduino.wire.endTransmission()
 
                 sleep(.01) # arduino.delay(10) if fails
         
                 # Read calibration values
                 for i in range(8):
-                        wire.beginTransmission(TSYS01_ADDR)
-                        wire.write(TSYS01_PROM_READ+i*2)
-                        wire.endTransmission()
+                        self.arduino.wire.beginTransmission(TSYS01_ADDR)
+                        self.arduino.wire.write(TSYS01_PROM_READ+i*2)
+                        self.arduino.wire.endTransmission()
 
-                        wire.requestFrom(TSYS01_ADDR,2)
-                        self._C[i] = (wire.read() << 8) | wire.read()
+                        self.arduino.wire.requestFrom(TSYS01_ADDR,2)
+                        self._C[i] = (self.arduino.wire.read() << 8) | self.arduino.wire.read()
         
 
         def read(self):
-                wire.beginTransmission(TSYS01_ADDR)
-                wire.write(TSYS01_ADC_TEMP_CONV)
-                wire.endTransmission()
+                self.arduino.wire.beginTransmission(TSYS01_ADDR)
+                self.arduino.wire.write(TSYS01_ADC_TEMP_CONV)
+                self.arduino.wire.endTransmission()
          
                 sleep(.01) # arduino.delay(10) if fails
                 
-                wire.beginTransmission(TSYS01_ADDR)
-                wire.write(TSYS01_ADC_READ)
-                wire.endTransmission()
+                self.arduino.wire.beginTransmission(TSYS01_ADDR)
+                self.arduino.wire.write(TSYS01_ADC_READ)
+                self.arduino.wire.endTransmission()
 
-                wire.requestFrom(TSYS01_ADDR,3)
+                self.arduino.wire.requestFrom(TSYS01_ADDR,3)
                 self._D1 = 0
-                self._D1 = wire.read()
-                self._D1 = (self._D1 << 8) | wire.read()
-                self._D1 = (self._D1 << 8) | wire.read()
+                self._D1 = self.arduino.wire.read()
+                self._D1 = (self._D1 << 8) | self.arduino.wire.read()
+                self._D1 = (self._D1 << 8) | self.arduino.wire.read()
 
                 calculate()
 

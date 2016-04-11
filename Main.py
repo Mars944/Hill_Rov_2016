@@ -23,7 +23,7 @@ import pygame.camera                                        # Experimental
 from nanpy import (ArduinoApi, SerialManager, Servo, wire)  # Arduino Api & Libraries for slavery
 from time import sleep                                      # Used for time.sleep() function
 from ROVFunctions import changeInterval
-#from TSYS01 import TSYS01
+
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""        
 # Global Classes
@@ -125,37 +125,37 @@ motorPin3 = 10
 motorPin4 = 11
 
 # Define Servo Pins
-armExtensionServoPin = 2
-clawUDServoPin       = 4
-clawOCServoPin       = 7
-camUDServoPin        = 8
+clawUDServoPin     = 2
+clawGraspServoPin  = 4
+armLRServoPin      = 7
+camUDServoPin      = 8
 
 # Connects to ESC's & Servos if arduino is connected
 if arduinoConnected:
-                motor1 = Servo(motorPin1)
-                motor1.writeMicroseconds(1500)
+                motorLeft = Servo(motorPin1)
+                motorLeft.writeMicroseconds(1500)
                 sleep(1)
                 print("ESC1 Connected!")
 
-                motor2 = Servo(motorPin2)
-                motor2.writeMicroseconds(1500)
+                motorRight = Servo(motorPin2)
+                motorRight.writeMicroseconds(1500)
                 sleep(1)
                 print("ESC2 Connected!")
 
-                motor3 = Servo(motorPin3)
-                motor3.writeMicroseconds(1500)
+                motorVertical = Servo(motorPin3)
+                motorVertical.writeMicroseconds(1500)
                 sleep(1)
                 print("ESC3 Connected!")
 
-                motor4 = Servo(motorPin4)
-                motor4.writeMicroseconds(1500)
+                motorHorizontal = Servo(motorPin4)
+                motorHorizontal.writeMicroseconds(1500)
                 sleep(1)
                 print("ESC4 Connected!")
 
-                armExtensionServo = Servo(armExtensionServoPin)
-                clawUDServo       = Servo(clawUDServoPin)
-                clawOCServo       = Servo(clawOCServoPin)
-                camUDServo        = Servo(camUDServoPin)
+                clawUDServo     = Servo(clawUDServoPin)
+                clawGraspServo  = Servo(clawGraspServoPin)
+                camUDServo      = Servo(camUDServoPin)
+                armLRServo      = Servo(armLRServoPin)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Pygame Initializations
@@ -255,24 +255,24 @@ ssDisplayedIndexR = 0    # Stores index of screenshotsRight being displayed
 """"""
 # Define Motor Values at default (in mS).
 
-M1Value = 1500
-M2Value = 1500
-M3Value = 1500
-M4Value = 1500
+MLeftValue = 1500
+MRightValue = 1500
+MVerticalValue = 1500
+MHorizontalValue = 1500
 
 """"""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Write Servo's to Default
 
-clawUDPosition       = 90
-clawOCPosition       = 0   # May need to reverse
-camUDPosition        = 90  # May need to Reverse
-armExtensionPosition = 180
+clawUDPosition      = 90
+clawGraspPosition   = 0   # May need to reverse
+camUDPosition       = 90
+armLRPosition  = 90
 
-armExtensionServo.write(armExtensionPosition) 
 clawUDServo.write(clawUDPosition)
-clawOCServo.write(clawOCPosition) 
+clawGraspServo.write(clawGraspPosition)
 camUDServo.write(camUDPosition)
+armLRServo.wrote(armLRPosition)
 sleep(5)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -324,52 +324,52 @@ while running:
         """ Presume Up & Right to be +1. May need to reverse on a case by case basis. """
 
         if gamepadConnected:
-                for b in [4, 6, 8, 9, 10, 11]:
+                for b in [4, 5, 6, 7, 8, 9, 10, 11]:
         
                         # Up on D-pad
                         if b == 4: # Extend Arm
                                 if gamepad.get_button(b) == 1:
-                                                if armExtensionPosition < 180:
-                                                        armExtensionPosition+=1
-                                                        armExtensionServo.write(armExtensionPosition) 
+                                        if clawUDPosition > 0:
+                                                clawUDPosition -= 1
+                                                clawUDServo.write(clawUDPosition)
 
                         # Down on D-pad
                         elif b == 6: # Withdraw Arm
                                 if gamepad.get_button(b) == 1:
-                                                if armExtensionPosition > 0:        
-                                                        armExtensionPosition-=1
-                                                        armExtensionServo.write(armExtensionPosition)  
+                                        if clawUDPosition < 180:
+                                                clawUDPosition += 1
+                                                clawUDServo.write(clawUDPosition)
+
+                        # Left on D-pad
+                        elif b == 7:
+                                if gamepad.get_button(b) == 1:
+                                        if armLRPosition > 0:
+                                                armLRPosition -= 1
+                                                armLRServo.write(armLRPosition)
+
+                        # Right on D-pad
+                        elif b == 5:
+                                if gamepad.get_button(b) == 1:
+                                        if armLRPosition < 180:
+                                                armLRPosition += 1
+                                                armLRServo.write(armLRPosition)
 
                         # Right Trigger (Future Dylan: Their Triggers are your Bumpers. Love Past Dylan)
                         elif b == 9: # Close Claw
                                 if gamepad.get_button(b) == 1:
-                                        if clawOCPosition < 180:
+                                        if clawGraspPosition < 180:
                                                 print("Right")
-                                                clawOCPosition+=1
-                                                clawOCServo.write(clawOCPosition)
+                                                clawGraspPosition+=1
+                                                clawGraspServo.write(clawGraspPosition)
 
                         # Left Trigger
                         elif b == 8: # Open Claw
                                 if gamepad.get_button(b) == 1:
-                                        if clawOCPosition > 0:
+                                        if clawGraspPosition > 0:
                                                 print("Left")
-                                                clawOCPosition-=1
-                                                clawOCServo.write(clawOCPosition)
+                                                clawGraspPosition-=1
+                                                clawGraspServo.write(clawGraspPosition)
 
-                        
-                        # Left Bumper
-                        elif b == 10: # Tilt Claw Down
-                                if gamepad.get_button(b) == 1:
-                                                if clawUDPosition > 0:
-                                                        clawUDPosition-=1
-                                                        clawUDServo.write(clawUDPosition) 
-
-                        # Right Bumper
-                        elif b == 11: # Tilt Claw Up
-                                if gamepad.get_button(b) == 1:
-                                        if clawUDPosition < 180:
-                                                        clawUDPosition+=1
-                                                        clawUDServo.write(clawUDPosition)
 
                 # Camera Related Buttons. Tracked separately from arm servos
                 for b in [1, 2]:
@@ -476,14 +476,12 @@ while running:
 
                 # Up/Down
                 if joystick.get_hat(0) == (-1, 1) or joystick.get_hat(0) == (0, 1) or joystick.get_hat(0) == (1, 1):
-                        M3Value = 1500+(400*throttle)
-                        M4Value = 1500+(400*throttle)
+                        MVerticalValue = 1500+(400*throttle)
                 elif joystick.get_hat(0) == (-1, -1) or joystick.get_hat(0) == (0, -1) or joystick.get_hat(0) == (1, -1):
-                        M3Value = 1500-(400*throttle)
-                        M4Value = 1500-(400*throttle)
+                        MVerticalValue = 1500-(400*throttle)
                 else:
-                        M3Value = 1500
-                        M4Value = 1500
+                        MVerticalValue = 1500
+                        MHorizontalValue = 1500
 
                 # Loops through each axis
                 for a in range( numAxes-1 ):
@@ -505,67 +503,43 @@ while running:
                         
                         # Crab
                         if a == 0:
-                                crabChange = joystick.get_axis(a)  # [-1 to 1]
-                                crab = crabChange * 200 * throttle # 200 can equal up to 400
-
-                                # If M3Value is Increasing
-                                if crabChange < 0:
-                                        if M3Value+crab > 1900:   # Checks to see if new M3Value > 1900. If so, Offputs change to M4Value
-                                                M3Value = 1900
-                                                M4Value = M4Value - crab - (M3Value+crab) + 1900
-                                        elif M4Value-crab < 1100: # Checks to see if new M4Value < 1100. If so, Offputs change to M3Value
-                                                M4Value = 1100
-                                                M3Value = M3Value + crab + (M4Value-crab) - 1100
-                                        else:
-                                                M4Value = M4Value + crab
-                                                M3Value = M3Value - crab
-                                
-                                # If M4Value is Increasing.
-                                elif crabChange > 0:
-                                        if M4Value+crab > 1900:   # Checks to see if new M4Value > 1900. If so, Offputs change to M3Value
-                                                M4Value = 1900
-                                                M3Value = M3Value - crab - (M4Value+crab) + 1900
-                                        elif M3Value-crab < 1100: # Checks to see if new M3Value < 1100. If so, Offputs change to M4Value
-                                                M3Value = 1100
-                                                M4Value = M4Value + crab + (M3Value-crab) - 1100
-                                        else:
-                                                M4Value = M4Value + crab
-                                                M3Value = M3Value - crab
+                                valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500 - (400 * throttle), 1500 + (400 * throttle))
+                                MHorizontalValue = valAxis
 
                         #Forward-Backward
                         elif a == 1: 
                                 valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500-(400*throttle), 1500+(400*throttle))
-                                M1Value = valAxis
-                                M2Value = valAxis
+                                MLeftValue = valAxis
+                                MRightValue = valAxis
 
                         # Yaw
                         elif a == 2:
                                 yawChange = joystick.get_axis(a) # [-1 to 1]
                                 yaw = yawChange * 200 * throttle # 200 can equal up to 400
 
-                                # If M2Value is Increasing
+                                # If MRightValue is Increasing
                                 if yawChange < 0:
-                                        if M2Value+yaw > 1900:   # Checks to see if new M2Value > 1900. If so, Offputs change to M1Value
-                                                M2Value = 1900
-                                                M1Value = M1Value - yaw - (M2Value+yaw) + 1900
-                                        elif M2Value-yaw < 1100: # Checks to see if new M1Value < 1100. If so, Offputs change to M2Value
-                                                M1Value = 1100
-                                                M2Value = M2Value + yaw + (M1Value-yaw) - 1100
+                                        if MRightValue+yaw > 1900:   # Checks to see if new MRightValue > 1900. If so, Offputs change to MLeftValue
+                                                MRightValue = 1900
+                                                MLeftValue = MLeftValue - yaw - (MRightValue+yaw) + 1900
+                                        elif MRightValue-yaw < 1100: # Checks to see if new MLeftValue < 1100. If so, Offputs change to MRightValue
+                                                MLeftValue = 1100
+                                                MRightValue = MRightValue + yaw + (MLeftValue-yaw) - 1100
                                         else:
-                                                M1Value = M1Value + yaw
-                                                M2Value = M2Value - yaw
+                                                MLeftValue = MLeftValue + yaw
+                                                MRightValue = MRightValue - yaw
                                 
-                                # If M1Value is Increasing.
+                                # If MLeftValue is Increasing.
                                 elif yawChange > 0:
-                                        if M1Value+yaw > 1900:   # Checks to see if new M1Value > 1900. If so, Offputs change to M2Value
-                                                M1Value = 1900
-                                                M2Value = M2Value - yaw - (M1Value+yaw) + 1900
-                                        elif M2Value-yaw < 1100: # Checks to see if new M2Value < 1100. If so, Offputs change to M1Value
-                                                M2Value = 1100
-                                                M1Value = M3Value + yaw + (M2Value-yaw) - 1100
+                                        if MLeftValue+yaw > 1900:   # Checks to see if new MLeftValue > 1900. If so, Offputs change to MRightValue
+                                                MLeftValue = 1900
+                                                MRightValue = MRightValue - yaw - (MLeftValue+yaw) + 1900
+                                        elif MRightValue-yaw < 1100: # Checks to see if new MRightValue < 1100. If so, Offputs change to MLeftValue
+                                                MRightValue = 1100
+                                                MLeftValue = MVerticalValue + yaw + (MRightValue-yaw) - 1100
                                         else:
-                                                M1Value = M1Value + yaw
-                                                M2Value = M2Value - yaw 
+                                                MLeftValue = MLeftValue + yaw
+                                                MRightValue = MRightValue - yaw
 
                                   
         # If arduino is disconnected, try to reconnect
@@ -577,30 +551,30 @@ while running:
                                 arduinoConnected = True
                                 print("arduino Connected!")
 
-                                motor1 = Servo(motorPin1)
-                                motor1.writeMicroseconds(1500)
+                                motorLeft = Servo(motorPin1)
+                                motorLeft.writeMicroseconds(1500)
                                 sleep(1)
                                 print("ESC1 Connected!")
 
-                                motor2 = Servo(motorPin2)
-                                motor2.writeMicroseconds(1500)
+                                motorRight = Servo(motorPin2)
+                                motorRight.writeMicroseconds(1500)
                                 sleep(1)
                                 print("ESC2 Connected!")
 
-                                motor3 = Servo(motorPin3)
-                                motor3.writeMicroseconds(1500)
+                                motorVertical = Servo(motorPin3)
+                                motorVertical.writeMicroseconds(1500)
                                 sleep(1)
                                 print("ESC3 Connected!")
 
-                                motor4 = Servo(motorPin4)
-                                motor4.writeMicroseconds(1500)
+                                motorHorizontal = Servo(motorPin4)
+                                motorHorizontal.writeMicroseconds(1500)
                                 sleep(1)
                                 print("ESC4 Connected!")
 
-                                armExtensionServo = Servo(armExtensionServoPin)
-                                clawUDServo       = Servo(clawUDServoPin)
-                                clawOCServo       = Servo(clawOCServoPin)
-                                camUDServo        = Servo(camUDServoPin)
+                                clawUDServo     = Servo(clawUDServoPin)
+                                clawGraspServo  = Servo(clawGraspServoPin)
+                                camUDServo      = Servo(camUDServoPin)
+                                armLRServo      = Servo(armLRServoPin)
                         except:
                                 print("arduino Failed to Connect")
                               
@@ -642,10 +616,10 @@ while running:
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""                
         # Round M_Values to Integers before processing.
         
-        M1Value = int(M1Value)
-        M2Value = int(M2Value)
-        M3Value = int(M3Value)
-        M4Value = int(M4Value)
+        MLeftValue = int(MLeftValue)
+        MRightValue = int(MRightValue)
+        MVerticalValue = int(MVerticalValue)
+        MHorizontalValue = int(MHorizontalValue)
 
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         # Update GUI        
@@ -659,16 +633,16 @@ while running:
 
         # Display Value of all motors
         if joystickConnected and arduinoConnected:
-                valMotorsText.Print(screen, "Motor 1: " + str(M1Value))
+                valMotorsText.Print(screen, "Motor 1: " + str(MLeftValue))
                 valMotorsText.newLine()
 
-                valMotorsText.Print(screen, "Motor 2: " + str(M2Value))
+                valMotorsText.Print(screen, "Motor 2: " + str(MRightValue))
                 valMotorsText.newLine()
                 
-                valMotorsText.Print(screen, "Motor 3: " + str(M3Value))
+                valMotorsText.Print(screen, "Motor 3: " + str(MVerticalValue))
                 valMotorsText.newLine()
 
-                valMotorsText.Print(screen, "Motor 4: " + str(M4Value))
+                valMotorsText.Print(screen, "Motor 4: " + str(MHorizontalValue))
                 valMotorsText.newLine()
         else:
                 if not arduinoConnected:
@@ -700,44 +674,44 @@ while running:
 
         # Limits & writes M_Values to ESC's
         if arduinoConnected:
-                if M1Value > 1500:
-                        motor1.writeMicroseconds(min(M1Value, motorMax))
-                elif M1Value < 1500:
-                        motor1.writeMicroseconds(max(M1Value, motorMin))
+                if MLeftValue > 1500:
+                        motorLeft.writeMicroseconds(min(MLeftValue, motorMax))
+                elif MLeftValue < 1500:
+                        motorLeft.writeMicroseconds(max(MLeftValue, motorMin))
                 else:
-                        motor1.writeMicroseconds(M1Value)
+                        motorLeft.writeMicroseconds(MLeftValue)
 
-                if M2Value > 1500:
-                        motor2.writeMicroseconds(min(M2Value, motorMax))
-                elif M2Value < 1500:
-                        motor2.writeMicroseconds(max(M2Value, motorMin))
+                if MRightValue > 1500:
+                        motorRight.writeMicroseconds(min(MRightValue, motorMax))
+                elif MRightValue < 1500:
+                        motorRight.writeMicroseconds(max(MRightValue, motorMin))
                 else:
-                        motor2.writeMicroseconds(M2Value)
+                        motorRight.writeMicroseconds(MRightValue)
 
-                if M3Value > 1500:
-                        motor3.writeMicroseconds(min(M3Value, motorMax))
-                elif M3Value < 1500:
-                        motor3.writeMicroseconds(max(M3Value, motorMin))
+                if MVerticalValue > 1500:
+                        motorVertical.writeMicroseconds(min(MVerticalValue, motorMax))
+                elif MVerticalValue < 1500:
+                        motorVertical.writeMicroseconds(max(MVerticalValue, motorMin))
                 else:
-                        motor3.writeMicroseconds(M3Value)
+                        motorVertical.writeMicroseconds(MVerticalValue)
 
-                if M4Value > 1500:
-                        motor4.writeMicroseconds(min(M4Value, motorMax))
-                elif M4Value < 1500:
-                        motor4.writeMicroseconds(max(M4Value, motorMin))
+                if MHorizontalValue > 1500:
+                        motorHorizontal.writeMicroseconds(min(MHorizontalValue, motorMax))
+                elif MHorizontalValue < 1500:
+                        motorHorizontal.writeMicroseconds(max(MHorizontalValue, motorMin))
                 else:
-                        motor4.writeMicroseconds(M4Value)
+                        motorHorizontal.writeMicroseconds(MHorizontalValue)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Quit
 
 # Reset arm Servos to default
 clawUDPosition       = 90
-clawOCPosition       = 0            # May need to reverse
-armExtensionPosition = 180          # May need to reverse
+clawGraspPosition    = 0  # May need to reverse
+armLRPosition       = 90
 
 clawUDServo.write(clawUDPosition)
-clawOCServo.write(clawOCPosition)
-armExtensionServo.write(armExtensionPosition)
+clawGraspServo.write(clawGraspPosition)
+armLRServo.write(armLRPosition)
 
 # Reset Camera Servo to Default
 camUDPosition= 90

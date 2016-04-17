@@ -1,21 +1,4 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Index:
-
-# 1. Imports
-# 2. Global Classes
-# 3. Define GUI Variables
-# 4. Create Window
-# 5. Attempts to connect to Camera
-# 6. Connect to arduino
-# 7. Pygame Initializations
-# 8. Joystick/Gamepad Variables & Setup
-# 9. Global Variables for Main Loop
-# 10. Write Servo's to Default
-# 11. Main Loop
-# 12. Quit
-# 13. Known Issues
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""        
 # Imports
 
 import pygame                                               # Used in conjunction with USB Joystick (Could also be used to create a UI)                             
@@ -26,31 +9,19 @@ from ROVFunctions import changeInterval
 import socket
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Setup UDP
-
-UDP_IP = "CHANGE TO PI'S IP"
-UDP_Port = 5005
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # (IPv4 Internet, UDP)
-
-sock.bind((UDP_IP, UDP_Port)
-
-while 1:
-    data, address = sock.recvfrom(1024) # buffer size is 1024 bytes
-
-    print(data))
+# UDP Stuff
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Attempts to connect to Camera
-camConnected = True
+camConnected = 1
 try:
-        cam = pygame.camera.Camera("/dev/video0", (720, 1080)) # PSEYE Default Dimesnsions: (640,480)
+        cam = pygame.camera.Camera("/dev/video0", (720, 1080))
         cam.start()
         print("Camera Connected!")
 except:
         print("Camera Failed to Connect")
-        camConnected = False
+        camConnected = 0
         
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Connect to arduino
@@ -59,7 +30,7 @@ except:
 arduinoConnected = False
 try:
         connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected arduino (Connected to bottom left USB Port) and sets baudrate to 115200
-        arduino = ArduinoApi(connection = connection)
+        arduino = ArduinoApi(connection=connection)
         arduinoConnected = True
         print("arduino Connected!")
 except:
@@ -99,10 +70,10 @@ if arduinoConnected:
                 sleep(1)
                 print("ESC4 Connected!")
 
-                clawUDServo     = Servo(clawUDServoPin)
-                clawGraspServo  = Servo(clawGraspServoPin)
-                camUDServo      = Servo(camUDServoPin)
-                armLRServo      = Servo(armLRServoPin)
+                clawUDServo    = Servo(clawUDServoPin)
+                clawGraspServo = Servo(clawGraspServoPin)
+                camUDServo     = Servo(camUDServoPin)
+                armLRServo     = Servo(armLRServoPin)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Pygame Initializations
@@ -113,8 +84,6 @@ pygame.camera.init()                         # Initialize the Camera library
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Global Variables for Main Loop
 
-running = True   # Breaks loop if False.
-
 # Define Motor Values at default (in mS).
 MLeftValue = 1500
 MRightValue = 1500
@@ -123,10 +92,11 @@ MHorizontalValue = 1500
 
 # Write Servo's to Default
 clawUDPosition = 90
-clawGraspPosition = 0   # May need to reverse
+clawGraspPosition = 0  # May need to reverse
 camUDPosition = 90
 armLRPosition = 90
 
+# Should already be in this position
 clawUDServo.write(clawUDPosition)
 clawGraspServo.write(clawGraspPosition)
 camUDServo.write(camUDPosition)
@@ -135,116 +105,78 @@ sleep(5)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
 
+running = True   # Breaks out of main loop if equal to False.
 while running:
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # Receive & Translate Motor & Servo values from Surface
 
-        """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-        # Update GUI        
+    # That code will go here
 
-        # Sets throttle text's color to Red if at 0.
-        if throttle == 0:
-                valMotorsText.changeColor(RED)
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # Write to motors & servos
 
-        valMotorsText.Print(screen, "Throttle: " + str(int(throttle*100)) + "%")
-        valMotorsText.newLine()
+    # Limits Motor speed from the original interval [1100, 1900]
+    motorMax = 1700
+    motorMin = 1300
 
-        # Display Value of all motors
-        if joystickConnected and arduinoConnected:
-                valMotorsText.Print(screen, "Motor 1: " + str(MLeftValue))
-                valMotorsText.newLine()
+    # Limits & writes M_Values to ESC's
+    if arduinoConnected:
+            if MLeftValue > 1500:
+                    motorLeft.writeMicroseconds(min(MLeftValue, motorMax))
+            elif MLeftValue < 1500:
+                    motorLeft.writeMicroseconds(max(MLeftValue, motorMin))
+            else:
+                    motorLeft.writeMicroseconds(MLeftValue)
 
-                valMotorsText.Print(screen, "Motor 2: " + str(MRightValue))
-                valMotorsText.newLine()
-                
-                valMotorsText.Print(screen, "Motor 3: " + str(MVerticalValue))
-                valMotorsText.newLine()
+            if MRightValue > 1500:
+                    motorRight.writeMicroseconds(min(MRightValue, motorMax))
+            elif MRightValue < 1500:
+                    motorRight.writeMicroseconds(max(MRightValue, motorMin))
+            else:
+                    motorRight.writeMicroseconds(MRightValue)
 
-                valMotorsText.Print(screen, "Motor 4: " + str(MHorizontalValue))
-                valMotorsText.newLine()
-        else:
-                if not arduinoConnected:
-                        valMotorsText.changeColor(RED)
-                        valMotorsText.Print(screen, "arduino is DISCONNECTED")
-                        valMotorsText.newLine()
-                        valMotorsText.changeColor(BLACK)
-                if not joystickConnected:
-                        valMotorsText.changeColor(RED)
-                        valMotorsText.Print(screen, "Joystick is DISCONNECTED")
-                        valMotorsText.newLine()
-                        valMotorsText.changeColor(BLACK)
-        if gamepadConnected:
-                # Update Screen with arm values
-                pass
-        else:
-                valArmText.changeColor(RED)
-                valArmText.Print(screen, "Gamepad is DISCONNECTED")
-                        
-        pygame.display.update()
-        clock.tick(60) # Sets FPS to 60
+            if MVerticalValue > 1500:
+                    motorVertical.writeMicroseconds(min(MVerticalValue, motorMax))
+            elif MVerticalValue < 1500:
+                    motorVertical.writeMicroseconds(max(MVerticalValue, motorMin))
+            else:
+                    motorVertical.writeMicroseconds(MVerticalValue)
 
-        """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-        # Write to motors
+            if MHorizontalValue > 1500:
+                    motorHorizontal.writeMicroseconds(min(MHorizontalValue, motorMax))
+            elif MHorizontalValue < 1500:
+                    motorHorizontal.writeMicroseconds(max(MHorizontalValue, motorMin))
+            else:
+                    motorHorizontal.writeMicroseconds(MHorizontalValue)
 
-        # Limits Motor speed 
-        motorMax = 1700
-        motorMin = 1300
+            # Write to Servos
+            clawUDServo.write(clawUDPosition)
+            clawGraspServo.write(clawGraspPosition)
+            camUDServo.write(camUDPosition)
+            armLRServo.wrote(armLRPosition)
 
-        # Limits & writes M_Values to ESC's
-        if arduinoConnected:
-                if MLeftValue > 1500:
-                        motorLeft.writeMicroseconds(min(MLeftValue, motorMax))
-                elif MLeftValue < 1500:
-                        motorLeft.writeMicroseconds(max(MLeftValue, motorMin))
-                else:
-                        motorLeft.writeMicroseconds(MLeftValue)
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # Receive values from Camera and Sensors
 
-                if MRightValue > 1500:
-                        motorRight.writeMicroseconds(min(MRightValue, motorMax))
-                elif MRightValue < 1500:
-                        motorRight.writeMicroseconds(max(MRightValue, motorMin))
-                else:
-                        motorRight.writeMicroseconds(MRightValue)
+    if camConnected:
+        camString = cam.get_raw()  # Stores string of image
 
-                if MVerticalValue > 1500:
-                        motorVertical.writeMicroseconds(min(MVerticalValue, motorMax))
-                elif MVerticalValue < 1500:
-                        motorVertical.writeMicroseconds(max(MVerticalValue, motorMin))
-                else:
-                        motorVertical.writeMicroseconds(MVerticalValue)
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # Prepare and send data to Surface
 
-                if MHorizontalValue > 1500:
-                        motorHorizontal.writeMicroseconds(min(MHorizontalValue, motorMax))
-                elif MHorizontalValue < 1500:
-                        motorHorizontal.writeMicroseconds(max(MHorizontalValue, motorMin))
-                else:
-                        motorHorizontal.writeMicroseconds(MHorizontalValue)
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    data = str(camConnected) + camString  # Plus sensor values
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Prepare to Quit
+
+# Reset all Servos to default
+clawUDServo.write(90)
+clawGraspServo.write(0)
+armLRServo.write(90)
+camUDServo.write(90)
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Quit
 
-# Reset arm Servos to default
-clawUDPosition = 90
-clawGraspPosition = 0  # May need to reverse
-armLRPosition = 90
-
-clawUDServo.write(clawUDPosition)
-clawGraspServo.write(clawGraspPosition)
-armLRServo.write(armLRPosition)
-
-# Reset Camera Servo to Default
-camUDPosition= 90
-camUDServo.write(camUDPosition)
-
-# Quit
 pygame.quit()
 quit()
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Known Issues
-
-"""
-
-- Once Connected, joystick, camera, & arduino can not be reconnected.
-- Motors algorithms suck. Fix them.
--Power must be turned on before arduino.
-
-"""
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

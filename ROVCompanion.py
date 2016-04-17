@@ -6,16 +6,10 @@ from time import sleep
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Set up UDP
 
-UDP_IP = "CHANGE TO PI'S IP"
-UDP_Port = 5005
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (IPv4 Internet, UDP)
-
-
-
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Global Classes
+# Classes
+
 
 class TextBox:  # Creates an object to work similarly to a text box.
 
@@ -54,20 +48,21 @@ class TextBox:  # Creates an object to work similarly to a text box.
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Define GUI Variables
 
+
 # Define Colors
-BLACK  = (0,0,0)
-WHITE  = (255,255,255)
-GRAY   = (211, 211, 211)
-RED    = (255, 0, 0)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GRAY = (211, 211, 211)
+RED = (255, 0, 0)
 ORANGE = (255, 165, 0)
 
-# Used to set window dimensions
-display_width  = 1920                       # 1208 (Home) 1825 (Hill) (Diff 640)
+# Used to set window dimensions (Should be fullscreen eventually)
+display_width = 1920                       # 1208 (Home) 1825 (Hill) (Diff 640)
 display_length = 1080                        # 649  (Home) 953  (Hill) (Diff 360)
-display_hyp    = int((display_length**2 +display_width**2)**.5) # Only used to set dimensions dependent on length and width.
+display_hyp = int((display_length**2 + display_width**2)**.5)  # Only used to set dimensions dependent on length and width.
 
 # Create Clock object
-clock = pygame.time.Clock() # Will be used for FPS
+clock = pygame.time.Clock()  # Will be used for FPS
  
 # Window's Icon
 icon = pygame.image.load('resources/Hill_Logo.png')
@@ -80,25 +75,28 @@ valArmText          =TextBox(int(display_hyp*(40/1371)), int(display_width*(170/
 valMotorsText       =TextBox(int(display_hyp*(30/1371)), int(display_width*(700/1208)), int(display_length*(90/649)))  # Data: Motor Values
 camDisconnectedText =TextBox(int(display_hyp*(40/1371)), int(display_width*(10/1208)),  int(display_length*(10/649)))  # Disconnect: Warns that Camera is Disconnected
 
-# Changes Color of certain TextBoxs
+# Changes Color of certain TextBoxes
 gamepadReminderText.changeColor(RED)
 camDisconnectedText.changeColor(RED)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Create Window
 
-pygame.display.set_icon(icon)                                     # Sets Window's Icon
-screen = pygame.display.set_mode((display_width, display_length)) # Creates Window/screen
-pygame.display.set_caption("The Hill ROV Companion App")          # Sets Window's Title
+
+pygame.display.set_icon(icon)                                      # Sets Window's Icon
+screen = pygame.display.set_mode((display_width, display_length))  # Creates Window/screen
+pygame.display.set_caption("The Hill ROV Companion App")           # Sets Window's Title
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-#Pygame Initializations
+# Pygame Initializations
+
 
 pygame.init()                                # Initialize pygame
 pygame.joystick.init()                       # Initialize the Joystick library
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Joystick/Gamepad Variables & Setup
+# Joystick & Gamepad Variables/Setup
+
 
 # Define name of required hardware
 gamepadName = "Sony PLAYSTATION(R)3 Controller"
@@ -118,16 +116,22 @@ for i in range(joystick_count):
         print("Gamepad Connected!")
     elif pygame.joystick.Joystick(i).get_name() == joystickName:
         joystick = pygame.joystick.Joystick(i)
+        joystick.init()
+        joystickConnected = True
+        print("Joystick Connected!")
+    else:
+        print("Unsupported Hardware")
 
 """"""
-# Band-Aid for Joystick throttle. 
+# Band-Aid for Joystick's throttle defaulting at 50.
 
 notMoved = True  # Checks to see if throttle has been moved from 0.
 throttle = 0     # Define throttle to start at 0.
 
 """"""
 # Used to check if gamepad has been disconnected.
-checkCount = 0 # Counts to 50 to see if ps3 axes 23-25 are equal all 50 times.
+
+disconnectingCount = 0  # Counts to 50 to see if ps3 axes 23-25 are equal all 50 times.
 
 if gamepadConnected:
     a23 = gamepad.get_axis(23)
@@ -138,32 +142,27 @@ else:
     a24 = 0
     a25 = 0
 
-
-    joystick.init()
-    joystickConnected = True
-    print("Joystick Connected!")
-
 """"""
-#Screenshot Variables
+# Screenshot Variables
 
-screenshotsLeft   = []   # Both used to store screenshots
-screenshotsRight  = []   # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+screenshotsLeft = []    # Both used to store screenshots
+screenshotsRight = []   # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-screenshotLeft    = None # Holds the screenshot to be displayed on the Left
-screenshotRight   = None # Holds the screenshot to be displayed on the Right
+screenshotLeft = None   # Holds the selected screenshot to be displayed on the Left
+screenshotRight = None  # Holds the selected screenshot to be displayed on the Right
 
-ssWaitL           = 0    # Waits for X counts before next screenshot
-ssWaitR           = 0    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ssWaitL = 0    # Waits for X counts before allowing next screenshot
+ssWaitR = 0    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-squareWait        = 0    # Waits for X counts before next button use
-circleWait        = 0    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+squareWait = 0    # Waits for X counts before allowing next button use
+circleWait = 0    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ssDisplayedIndexL = 0    # Stores index of screenshotsLeft being displayed
 ssDisplayedIndexR = 0    # Stores index of screenshotsRight being displayed
 
 """"""
 
-running = True   # Breaks loop if False.
+running = True   # Main loop ends when this = False.
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Data to be sent to ROV
@@ -183,6 +182,7 @@ armLRPosition = 90
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
 
+
 while running:
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Checks to see if the User has quit
@@ -197,19 +197,19 @@ while running:
     valMotorsText.reset()
     valArmText.reset()
 
-    screen.fill(GRAY)  # Reset Screen to gray
+    screen.fill(GRAY)  # Resets background to Gray
 
     # Attempt to Display Video Feed
-    if camConnected:  # WILL CHANGE
-        screen.blit(pygame.transform.scale(cam.get_image(), (524, 393)), (0, 0))
+    if camConnected:
+        screen.blit(pygame.transform.scale(cam.get_image(), (524, 393)), (0, 0))  # Will be replaced with value from ROV
     else:
         camDisconnectedText.Print(screen, "CAMERA DISCONNECTED.")
 
     # Displays screenshots
     pygame.draw.rect(screen, ORANGE, (535, 399, 673, 250))  # 535 399 673 250
-    if screenshotLeft != None:
+    if screenshotLeft is not None:   # Might change to != None
         screen.blit(pygame.transform.scale(screenshotLeft, (320, 240)), (548, 409))
-    if screenshotRight != None:
+    if screenshotRight is not None:  # Might change to != None
         screen.blit(pygame.transform.scale(screenshotRight, (320, 240)), (876, 409))
 
     # Display Titles
@@ -221,14 +221,13 @@ while running:
     """ Presume Up & Right to be +1. May need to reverse on a case by case basis. """
 
     if gamepadConnected:
-        for b in [4, 5, 6, 7, 8, 9, 10, 11]:
+        for b in [4, 5, 6, 7, 8, 9]:  # Checks for all arm related servo value changes
 
             # Up on D-pad
             if b == 4:  # Extend Arm
                 if gamepad.get_button(b) == 1:
                     if clawUDPosition > 0:
                         clawUDPosition -= 1
-
 
             # Down on D-pad
             elif b == 6:  # Withdraw Arm
@@ -251,7 +250,7 @@ while running:
                         armLRPosition += 1
                         armLRServo.write(armLRPosition)
 
-            # Right Trigger (Future Dylan: Their Triggers are your Bumpers. Love Past Dylan)
+            # Right Trigger
             elif b == 9:  # Close Claw
                 if gamepad.get_button(b) == 1:
                     if clawGraspPosition < 180:
@@ -266,8 +265,9 @@ while running:
                         print("Left")
                         clawGraspPosition -= 1
                         clawGraspServo.write(clawGraspPosition)
-                        # Camera Related Buttons. Tracked separately from arm servos
-        for b in [1, 2]:
+
+        for b in [1, 2, 12, 13, 14, 15]:  # Checks for changes to screenshot and camera variables
+
             # Left Joystick
             if b == 1:  # Flip through saved Left Screenshots
                 if ssWaitL == 0:
@@ -302,7 +302,6 @@ while running:
                     if ssWaitR >= 10:
                         ssWaitR = 0
 
-        for b in [12, 13, 14, 15]:
             # Triangle Button
             if b == 12:  # Move Camera Servo Up
                 if gamepad.get_button(b) == 1:
@@ -310,7 +309,7 @@ while running:
                         camUDPosition += 1
                         camUDServo.write(camUDPosition)
 
-                        # Circle Button
+            # Circle Button
             elif b == 13:  # Save Screenshot to RightArray
                 if circleWait == 0:
                     if camConnected:
@@ -330,6 +329,7 @@ while running:
                     if camUDPosition > 0:
                         camUDPosition -= 1
                         camUDServo.write(camUDPosition)
+
             # Square Button
             elif b == 15:  # Save Screenshot to LeftArray
                 if squareWait == 0:
@@ -344,7 +344,7 @@ while running:
                     if squareWait >= 10:
                         squareWait = 0
 
-                        # Check motion tracker to see if gamepad is disconnected.
+        # Check motion tracker to see if gamepad is disconnected.
         OGa23 = a23
         OGa24 = a24
         OGa25 = a25
@@ -353,37 +353,28 @@ while running:
         a24 = gamepad.get_axis(24)
         a25 = gamepad.get_axis(25)
         if OGa23 == a23 and OGa24 == a24 and OGa25 == a25:
-            checkCount += 1
-            if checkCount == 100:
+            disconnectingCount += 1
+            if disconnectingCount == 100:
                 gamepadConnected = False
-                checkCount = 0
+                disconnectingCount = 0
         else:
-            checkCount = 0
+            disconnectingCount = 0
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # Reads Joystick input if Joystick and Ardunio are both connected.
+    # Reads Joystick input
 
     if joystickConnected:
 
         numAxes = joystick.get_numaxes()  # Gets number of axis on Joystick
 
-        # Up/Down
-        if joystick.get_hat(0) == (-1, 1) or joystick.get_hat(0) == (0, 1) or joystick.get_hat(0) == (1, 1):
-            MVerticalValue = 1500 + (400 * throttle)
-        elif joystick.get_hat(0) == (-1, -1) or joystick.get_hat(0) == (0, -1) or joystick.get_hat(0) == (1, -1):
-            MVerticalValue = 1500 - (400 * throttle)
-        else:
-            MVerticalValue = 1500
-            MHorizontalValue = 1500
-
-        # Loops through each axis
+        # Checks each axis on the Joystick
         for a in range(numAxes - 1):
 
-            # throttle receives a percentage out of 100%
+            # throttle = int([0%, 100%])
             throttle = changeInterval(-joystick.get_axis(3), -1, 1, 0, 100) / 100
 
             """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-            # Band-Aid. Throttle will default at 0% instead of 50%.
+            # Band-Aid to fix Throttle defaulting at 50%.
 
             if notMoved:
                 if throttle != .5:
@@ -392,7 +383,16 @@ while running:
                     throttle = 0
 
             """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-            # Update Motor Values
+            # Update local Motor Values
+
+            # Up/Down
+            if joystick.get_hat(0) == (-1, 1) or joystick.get_hat(0) == (0, 1) or joystick.get_hat(0) == (1, 1):
+                MVerticalValue = 1500 + (400 * throttle)
+            elif joystick.get_hat(0) == (-1, -1) or joystick.get_hat(0) == (0, -1) or joystick.get_hat(0) == (1, -1):
+                MVerticalValue = 1500 - (400 * throttle)
+            else:
+                MVerticalValue = 1500
+                MHorizontalValue = 1500
 
             # Crab
             if a == 0:
@@ -434,7 +434,9 @@ while running:
                         MLeftValue += yaw
                         MRightValue -= yaw
 
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # If no joysticks are detected, try to reconnect
+
     if not gamepadConnected and not joystickConnected:
         # Rescans connected joysticks
         pygame.joystick.quit()
@@ -458,35 +460,72 @@ while running:
                 print("Unsupported Hardware Ignored.")
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # Prepare data to be sent to ROV
+    # Prepare & send data to be sent to ROV
 
-    # Round to Integers
-    MLeftValue = str(int(MLeftValue))
-    MRightValue = str(int(MRightValue))
-    MVerticalValue = str(int(MVerticalValue))
-    MHorizontalValue = str(int(MHorizontalValue))
+    # Cast Servos as encoded strings
+    strClawUDPosition = str(clawUDPosition)
+    strArmLRPosition = str(armLRPosition)
+    strClawGraspPosition = str(clawGraspPosition)
+    strCamUDServo = str(camUDPosition)
 
-    """clawUDPosition
-    armLRPosition
-    clawGraspPosition
-    camUDServo"""
+    # Add leading 0's to servo values if a 1 or 2 digit number.
+    for s in [strClawUDPosition, strArmLRPosition, strClawGraspPosition, strCamUDServo]:
+        if len(s) == 1:
+            s = "00" + s
+        elif len(s) == 2:
+            s = "0" + s
+
+    # Data to be sent to ROV (28 bytes)
+    data = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo
+    data.encode('utf-8')
+
+    # This is where I am going to send the data over.
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # Quit
+    # Receive data from the ROV
 
-    # Reset arm Servos to default
-    clawUDPosition = 90
-    clawGraspPosition = 0  # May need to reverse
-    armLRPosition = 90
+    # This is where I am going to receive data from the ROV
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # Update GUI
 
-    clawUDServo.write(clawUDPosition)
-    clawGraspServo.write(clawGraspPosition)
-    armLRServo.write(armLRPosition)
+    # Sets throttle text's color to Red if at 0.
+    if throttle == 0:
+        valMotorsText.changeColor(RED)
 
-    # Reset Camera Servo to Default
-    camUDPosition = 90
-    camUDServo.write(camUDPosition)
+    valMotorsText.Print(screen, "Throttle: " + str(int(throttle * 100)) + "%")
+    valMotorsText.newLine()
 
-    # Quit
-    pygame.quit()
-    quit()
+    # Display Value of all motors
+    if joystickConnected:
+        valMotorsText.Print(screen, "Motor 1: " + str(MLeftValue))
+        valMotorsText.newLine()
+
+        valMotorsText.Print(screen, "Motor 2: " + str(MRightValue))
+        valMotorsText.newLine()
+
+        valMotorsText.Print(screen, "Motor 3: " + str(MVerticalValue))
+        valMotorsText.newLine()
+
+        valMotorsText.Print(screen, "Motor 4: " + str(MHorizontalValue))
+        valMotorsText.newLine()
+    else:
+        if not joystickConnected:
+            valMotorsText.changeColor(RED)
+            valMotorsText.Print(screen, "Joystick is DISCONNECTED")
+            valMotorsText.newLine()
+            valMotorsText.changeColor(BLACK)
+    if gamepadConnected:
+        # Update Screen with arm values
+        pass
+    else:
+        valArmText.changeColor(RED)
+        valArmText.Print(screen, "Gamepad is DISCONNECTED")
+
+    pygame.display.update()
+    clock.tick(60)  # Sets FPS to 60
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Quit
+
+pygame.quit()
+quit()

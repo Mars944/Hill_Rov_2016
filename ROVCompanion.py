@@ -4,8 +4,15 @@ import socket
 from time import sleep
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Set up UDP
+# Set up UDP (Treated as Client)
 
+UDP_IP = "192.168.1.10"  # Static IP of Surface Pi
+UDP_PORT = 5001          # Port of Surface Pi
+
+server = ('192.168.1.11', 5000)  # IP & Port of Sub Pi
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Create Socket connection(IPv4, UDP)
+sock.bind((UDP_IP, UDP_PORT))                            # Bind socket to IP & Port of the Surface Pi
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Classes
@@ -479,12 +486,16 @@ while running:
     data = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo
     data.encode('utf-8')
 
-    # This is where I am going to send the data over.
-
+    sock.sendto(data, server)  # Send the data to the ROV
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Receive data from the ROV
+    
+    data = sock.recvfrom(1024)
 
-    # This is where I am going to receive data from the ROV
+    # Translate data received
+    # Set Sensor Values
+    # Set camera value
+    
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Update GUI
 

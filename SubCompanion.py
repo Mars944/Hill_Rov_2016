@@ -9,8 +9,15 @@ from ROVFunctions import changeInterval
 import socket
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# UDP Stuff
+# Set up UDP (Treated as Server)
 
+UDP_IP = "192.168.1.11"  # Static IP of Surface Pi
+UDP_PORT = 5000          # Port of Surface Pi
+
+client = ('192.168.1.1', 5001)
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Create Socket connection(IPv4, UDP)
+sock.bind((UDP_IP, UDP_PORT))                            # Bind socket to IP & Port of the Surface Pi
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Attempts to connect to Camera
@@ -110,7 +117,18 @@ while running:
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Receive & Translate Motor & Servo values from Surface
 
-    # That code will go here
+    data = sock.recvfrom(1024)
+    data = data.decode('utf-8')
+
+    MLeftValue = int(data[:4])
+    MRightValue = int(data[4:8])
+    MVerticalValue = int(data[8:12])
+    MHorizontalValue = int(data[12:16])
+
+    clawUDPosition = int(data[16:19])
+    armLRPosition = int(data[19:22])
+    clawGraspPosition = int(data[22:25])
+    camUDPosition = int(data[25:28])
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Write to motors & servos

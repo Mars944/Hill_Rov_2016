@@ -117,18 +117,18 @@ while running:
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Receive & Translate Motor & Servo values from Surface
 
-    data = sock.recvfrom(1024)
-    data = data.decode('utf-8')
+    rData = sock.recvfrom(1024)
+    rData = rData.decode('utf-8')
 
-    MLeftValue = int(data[:4])
-    MRightValue = int(data[4:8])
-    MVerticalValue = int(data[8:12])
-    MHorizontalValue = int(data[12:16])
+    MLeftValue = int(rData[:4])
+    MRightValue = int(rData[4:8])
+    MVerticalValue = int(rData[8:12])
+    MHorizontalValue = int(rData[12:16])
 
-    clawUDPosition = int(data[16:19])
-    armLRPosition = int(data[19:22])
-    clawGraspPosition = int(data[22:25])
-    camUDPosition = int(data[25:28])
+    clawUDPosition = int(rData[16:19])
+    armLRPosition = int(rData[19:22])
+    clawGraspPosition = int(rData[22:25])
+    camUDPosition = int(rData[25:28])
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Write to motors & servos
@@ -178,11 +178,22 @@ while running:
 
     if camConnected:
         camString = cam.get_raw()  # Stores string of image
+    else:
+        try:
+            cam = pygame.camera.Camera("/dev/video0", (720, 1080))
+            cam.start()
+            print("Camera Connected!")
+            camConnected = 1
+        except:
+            print("Camera Failed to Connect")
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Prepare and send data to Surface
 
-    data = str(camConnected) + camString  # Plus sensor values
+    rData = str(camConnected) + camString  # Plus sensor values
+    rData.encode('utf-8')
+
+    sock.sendto(rData, client)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Prepare to Quit

@@ -168,7 +168,8 @@ ssDisplayedIndexL = 0    # Stores index of screenshotsLeft being displayed
 ssDisplayedIndexR = 0    # Stores index of screenshotsRight being displayed
 
 """"""
-
+camConnected = 0
+image = ""
 running = True   # Main loop ends when this = False.
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -208,7 +209,7 @@ while running:
 
     # Attempt to Display Video Feed
     if camConnected:
-        screen.blit(pygame.transform.scale(cam.get_image(), (524, 393)), (0, 0))  # Will be replaced with value from ROV
+        screen.blit(pygame.transform.scale(image, (524, 393)), (0, 0))  # Will be replaced with value from ROV
     else:
         camDisconnectedText.Print(screen, "CAMERA DISCONNECTED.")
 
@@ -483,14 +484,18 @@ while running:
             s = "0" + s
 
     # Data to be sent to ROV (28 bytes)
-    data = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo
-    data.encode('utf-8')
+    sData = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo
+    sData.encode('utf-8')
 
-    sock.sendto(data, server)  # Send the data to the ROV
+    sock.sendto(sData, server)  # Send the data to the ROV
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Receive data from the ROV
     
-    data = sock.recvfrom(1024)
+    rData = sock.recvfrom(1024)
+    rData = rData.decode('utf-8')
+
+    camConnected = int(rData[:1])
+    image = pygame.image.fromstring(rData[1:])
 
     # Translate data received
     # Set Sensor Values

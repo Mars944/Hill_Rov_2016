@@ -2,17 +2,31 @@ import pygame
 import pygame.camera
 import socket
 from time import sleep
+from ROVFunctions import changeInterval
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Set up UDP (Treated as Client)
 
 UDP_IP = "192.168.1.10"  # Static IP of Surface Pi
-UDP_PORT = 5001          # Port of Surface Pi
+UDP_PORT = 5000          # Port of Surface Pi
 
-server = ('192.168.1.11', 5000)  # IP & Port of Sub Pi
+server = ('192.168.1.11', 5001)  # IP & Port of Sub Pi
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Create Socket connection(IPv4, UDP)
-sock.bind((UDP_IP, UDP_PORT))                            # Bind socket to IP & Port of the Surface Pi
+
+binding = 1
+while binding:
+    try:
+        sock.bind((UDP_IP, UDP_PORT))                            # Bind socket to IP & Port of the Surface Pi
+        binding = 0
+    except:
+        "Binding"
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Pygame Initializations
+
+pygame.init()           # Initialize pygame
+pygame.camera.init()
+pygame.joystick.init()  # Initialize the Joystick library
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Classes
@@ -64,8 +78,8 @@ RED = (255, 0, 0)
 ORANGE = (255, 165, 0)
 
 # Used to set window dimensions (Should be fullscreen eventually)
-display_width = 1920                       # 1208 (Home) 1825 (Hill) (Diff 640)
-display_length = 1080                        # 649  (Home) 953  (Hill) (Diff 360)
+display_width = 1825                       # 1208 (Home) 1825 (Hill) (Diff 640)
+display_length = 953                        # 649  (Home) 953  (Hill) (Diff 360)
 display_hyp = int((display_length**2 + display_width**2)**.5)  # Only used to set dimensions dependent on length and width.
 
 # Create Clock object
@@ -89,21 +103,28 @@ camDisconnectedText.changeColor(RED)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Create Window
 
-
 pygame.display.set_icon(icon)                                      # Sets Window's Icon
+pygame.display.set_caption("PITA Companion App")           # Sets Window's Title
 screen = pygame.display.set_mode((display_width, display_length))  # Creates Window/screen
-pygame.display.set_caption("The Hill ROV Companion App")           # Sets Window's Title
+screen.fill(GRAY)
+clock.tick(60)                                                     # Sets FPS to 60
+pygame.display.update()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Pygame Initializations
+# Setup Camera
 
-
-pygame.init()                                # Initialize pygame
-pygame.joystick.init()                       # Initialize the Joystick library
+camConnected = 0
+while not camConnected:
+    try:
+        cam = pygame.camera.Camera("/dev/video0", (480, 360))
+        cam.start()
+        print("Camera Connected")
+        camConnected = 1
+    except:
+        print("Searching for Camera")
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Joystick & Gamepad Variables/Setup
-
 
 # Define name of required hardware
 gamepadName = "Sony PLAYSTATION(R)3 Controller"
@@ -190,7 +211,6 @@ armLRPosition = 90
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
 
-
 while running:
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Checks to see if the User has quit
@@ -204,14 +224,11 @@ while running:
     # Reset Value TextBox's
     valMotorsText.reset()
     valArmText.reset()
-
+    
     screen.fill(GRAY)  # Resets background to Gray
-
+    
     # Attempt to Display Video Feed
-    if camConnected:
-        screen.blit(pygame.transform.scale(image, (524, 393)), (0, 0))  # Will be replaced with value from ROV
-    else:
-        camDisconnectedText.Print(screen, "CAMERA DISCONNECTED.")
+    screen.blit(pygame.transform.scale(cam.get_image(), (524, 393)), (0, 0))  # Will be replaced with value from ROV
 
     # Displays screenshots
     pygame.draw.rect(screen, ORANGE, (535, 399, 673, 250))  # 535 399 673 250
@@ -242,37 +259,30 @@ while running:
                 if gamepad.get_button(b) == 1:
                     if clawUDPosition < 180:
                         clawUDPosition += 1
-                        clawUDServo.write(clawUDPosition)
 
             # Left on D-pad
             elif b == 7:
                 if gamepad.get_button(b) == 1:
                     if armLRPosition > 0:
                         armLRPosition -= 1
-                        armLRServo.write(armLRPosition)
 
             # Right on D-pad
             elif b == 5:
                 if gamepad.get_button(b) == 1:
                     if armLRPosition < 180:
                         armLRPosition += 1
-                        armLRServo.write(armLRPosition)
 
             # Right Trigger
             elif b == 9:  # Close Claw
                 if gamepad.get_button(b) == 1:
                     if clawGraspPosition < 180:
-                        print("Right")
                         clawGraspPosition += 1
-                        clawGraspServo.write(clawGraspPosition)
 
             # Left Trigger
             elif b == 8:  # Open Claw
                 if gamepad.get_button(b) == 1:
                     if clawGraspPosition > 0:
-                        print("Left")
                         clawGraspPosition -= 1
-                        clawGraspServo.write(clawGraspPosition)
 
         for b in [1, 2, 12, 13, 14, 15]:  # Checks for changes to screenshot and camera variables
 
@@ -315,7 +325,6 @@ while running:
                 if gamepad.get_button(b) == 1:
                     if camUDPosition < 180:
                         camUDPosition += 1
-                        camUDServo.write(camUDPosition)
 
             # Circle Button
             elif b == 13:  # Save Screenshot to RightArray
@@ -336,7 +345,6 @@ while running:
                 if gamepad.get_button(b) == 1:
                     if camUDPosition > 0:
                         camUDPosition -= 1
-                        camUDServo.write(camUDPosition)
 
             # Square Button
             elif b == 15:  # Save Screenshot to LeftArray
@@ -469,37 +477,48 @@ while running:
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Prepare & send data to be sent to ROV
-
-    # Cast Servos as encoded strings
+    
+    # Cast Servos as strings
     strClawUDPosition = str(clawUDPosition)
     strArmLRPosition = str(armLRPosition)
     strClawGraspPosition = str(clawGraspPosition)
     strCamUDServo = str(camUDPosition)
 
-    # Add leading 0's to servo values if a 1 or 2 digit number.
-    for s in [strClawUDPosition, strArmLRPosition, strClawGraspPosition, strCamUDServo]:
-        if len(s) == 1:
-            s = "00" + s
-        elif len(s) == 2:
-            s = "0" + s
+    
+    if len(strClawUDPosition) == 1:
+        strClawUDPosition = "00" + strClawUDPosition
+    elif len(strClawUDPosition) == 2:
+        strClawUDPosition = "0" + strClawUDPosition
 
+    if len(strArmLRPosition) == 1:
+        strArmLRPosition = "00" + strArmLRPosition
+    elif len(strArmLRPosition) == 2:
+        strArmLRPosition = "0" + strArmLRPosition
+
+    if len(strClawGraspPosition) == 1:
+        strClawGraspPosition = "00" + strClawGraspPosition
+    elif len(strClawGraspPosition) == 2:
+        strClawGraspPosition = "0" + strClawGraspPosition
+
+    if len(strCamUDServo) == 1:
+        strCamUDServo = "00" + strCamUDServo
+    elif len(strCamUDServo) == 2:
+        strCamUDServo = "0" + strCamUDServo
+        
     # Data to be sent to ROV (28 bytes)
     sData = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo
-    sData.encode('utf-8')
-
-    sock.sendto(sData, server)  # Send the data to the ROV
-    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # Receive data from the ROV
+    sData = sData.encode('utf-8')
     
-    rData = sock.recvfrom(1024)
+    sock.sendto(sData, server)  # Send the data to the ROV
+    
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # Receive sensor data from the ROV
+    
+    rData, addr = sock.recvfrom(1024)
     rData = rData.decode('utf-8')
-
-    camConnected = int(rData[:1])
-    image = pygame.image.fromstring(rData[1:])
-
+    
     # Translate data received
     # Set Sensor Values
-    # Set camera value
     
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Update GUI
@@ -537,6 +556,9 @@ while running:
         valArmText.changeColor(RED)
         valArmText.Print(screen, "Gamepad is DISCONNECTED")
 
+    # Attempt to Display Video Feed
+    screen.blit(pygame.transform.scale(cam.get_image(), (524, 393)), (0, 0))  # Will be replaced with value from ROV
+    
     pygame.display.update()
     clock.tick(60)  # Sets FPS to 60
 

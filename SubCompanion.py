@@ -1,47 +1,42 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Imports
-
-import pygame                                               # Used in conjunction with USB Joystick (Could also be used to create a UI)                             
-import pygame.camera                                        # Experimental 
+                        
 from nanpy import (ArduinoApi, SerialManager, Servo, wire)  # Arduino Api & Libraries for slavery
 from time import sleep                                      # Used for time.sleep() function
-from ROVFunctions import changeInterval
 import socket
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Set up UDP (Treated as Server)
 
 UDP_IP = "192.168.1.11"  # Static IP of Surface Pi
-UDP_PORT = 5000          # Port of Surface Pi
+UDP_PORT = 5001          # Port of Surface Pi
 
-client = ('192.168.1.1', 5001)
+client = ('192.168.1.10', 5000)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Create Socket connection(IPv4, UDP)
-sock.bind((UDP_IP, UDP_PORT))                            # Bind socket to IP & Port of the Surface Pi
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Attempts to connect to Camera
-camConnected = 1
-try:
-        cam = pygame.camera.Camera("/dev/video0", (720, 1080))
-        cam.start()
-        print("Camera Connected!")
-except:
-        print("Camera Failed to Connect")
-        camConnected = 0
-        
+# Attempts to bind socket until success.
+binding = 1
+while binding:
+    try:
+        sock.bind((UDP_IP, UDP_PORT))  # Bind socket to IP & Port of the Surface Pi
+        binding = 0
+    except:
+        pass
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Connect to arduino
 
 # Attempts to connect to arduino
 arduinoConnected = False
-try:
+while not arduinoConnected:
+    try:
         connection = SerialManager(device='/dev/ttyACM0', baudrate=115200)  # Finds the connected arduino (Connected to bottom left USB Port) and sets baudrate to 115200
         arduino = ArduinoApi(connection=connection)
         arduinoConnected = True
         print("arduino Connected!")
-except:
-        print("arduino Failed to Connect")
+    except:
+        print("Searching for Arduino")
 
 # Define Motor Pins
 motorPin1 = 6
@@ -59,34 +54,24 @@ camUDServoPin      = 8
 if arduinoConnected:
                 motorLeft = Servo(motorPin1)
                 motorLeft.writeMicroseconds(1500)
-                sleep(1)
                 print("ESC1 Connected!")
 
                 motorRight = Servo(motorPin2)
                 motorRight.writeMicroseconds(1500)
-                sleep(1)
                 print("ESC2 Connected!")
 
                 motorVertical = Servo(motorPin3)
                 motorVertical.writeMicroseconds(1500)
-                sleep(1)
                 print("ESC3 Connected!")
 
                 motorHorizontal = Servo(motorPin4)
                 motorHorizontal.writeMicroseconds(1500)
-                sleep(1)
                 print("ESC4 Connected!")
 
                 clawUDServo    = Servo(clawUDServoPin)
                 clawGraspServo = Servo(clawGraspServoPin)
                 camUDServo     = Servo(camUDServoPin)
                 armLRServo     = Servo(armLRServoPin)
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Pygame Initializations
-
-pygame.init()                                # Initialize pygame
-pygame.camera.init()                         # Initialize the Camera library
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Global Variables for Main Loop
@@ -107,8 +92,9 @@ armLRPosition = 90
 clawUDServo.write(clawUDPosition)
 clawGraspServo.write(clawGraspPosition)
 camUDServo.write(camUDPosition)
-armLRServo.wrote(armLRPosition)
-sleep(5)
+armLRServo.write(armLRPosition)
+
+sleep(1)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
 
@@ -117,7 +103,7 @@ while running:
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Receive & Translate Motor & Servo values from Surface
 
-    rData = sock.recvfrom(1024)
+    rData, addr = sock.recvfrom(1024)
     rData = rData.decode('utf-8')
 
     MLeftValue = int(rData[:4])
@@ -128,7 +114,9 @@ while running:
     clawUDPosition = int(rData[16:19])
     armLRPosition = int(rData[19:22])
     clawGraspPosition = int(rData[22:25])
-    camUDPosition = int(rData[25:28])
+    camUDPosition = int(rData[25:])
+
+    print(MHorizontalValue)
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Write to motors & servos
@@ -171,29 +159,20 @@ while running:
             clawUDServo.write(clawUDPosition)
             clawGraspServo.write(clawGraspPosition)
             camUDServo.write(camUDPosition)
-            armLRServo.wrote(armLRPosition)
+            armLRServo.write(armLRPosition)
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # Receive values from Camera and Sensors
+    # Receive values from Sensors
 
-    if camConnected:
-        camString = cam.get_raw()  # Stores string of image
-    else:
-        try:
-            cam = pygame.camera.Camera("/dev/video0", (720, 1080))
-            cam.start()
-            print("Camera Connected!")
-            camConnected = 1
-        except:
-            print("Camera Failed to Connect")
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Prepare and send data to Surface
 
-    rData = str(camConnected) + camString  # Plus sensor values
-    rData.encode('utf-8')
+    sData = "9001" # OVER 9000! Will be replaced with sensore data
+    sData = sData.encode('utf-8')
 
-    sock.sendto(rData, client)
+    sock.sendto(sData, addr)
+    
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Prepare to Quit
@@ -207,5 +186,4 @@ camUDServo.write(90)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Quit
 
-pygame.quit()
 quit()

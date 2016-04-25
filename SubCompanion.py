@@ -101,6 +101,9 @@ sleep(1)
 running = True   # Breaks out of main loop if equal to False.
 while running:
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # Receive values from Sensors
+
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Receive & Translate Motor & Servo values from Surface
 
     rData, addr = sock.recvfrom(1024)
@@ -117,6 +120,14 @@ while running:
     camUDPosition = int(rData[25:])
 
     print(MHorizontalValue)
+
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # Prepare and send Sensor data to Surface
+
+    sData = "9001" # OVER 9000! Will be replaced with sensore data
+    sData = sData.encode('utf-8')
+
+    sock.sendto(sData, addr)
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Write to motors & servos
@@ -155,24 +166,22 @@ while running:
             else:
                     motorHorizontal.writeMicroseconds(MHorizontalValue)
 
-            # Write to Servos
-            clawUDServo.write(clawUDPosition)
-            clawGraspServo.write(clawGraspPosition)
-            camUDServo.write(camUDPosition)
-            armLRServo.write(armLRPosition)
+            # Write to Servos if new value is requested
+            if clawUDPosition != OGClawUDPosition:
+            	clawUDServo.write(clawUDPosition)
+            	OGClawUDPosition = clawUDPosition
+            
+            if clawGraspPosition != OGClawGraspPosition:
+            	clawGraspServo.write(clawGraspPosition)
+            	OGClawGraspPosition = clawGraspPosition
 
-    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # Receive values from Sensors
-
-
-    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # Prepare and send data to Surface
-
-    sData = "9001" # OVER 9000! Will be replaced with sensore data
-    sData = sData.encode('utf-8')
-
-    sock.sendto(sData, addr)
-    
+            if camUDPosition != OGCamUDPosition:
+            	camUDServo.write(camUDPosition)
+            	OGCamUDPosition = camUDPosition
+            
+            if armLRPosition != OGArmLRPosition:
+	            armLRServo.write(armLRPosition)
+	            OGArmLRPosition = armLRPosition    
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Prepare to Quit

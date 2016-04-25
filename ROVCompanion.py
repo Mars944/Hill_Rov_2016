@@ -7,6 +7,7 @@ from ROVFunctions import changeInterval
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Set up UDP (Treated as Client)
 
+
 UDP_IP = "192.168.1.10"  # Static IP of Surface Pi
 UDP_PORT = 5000          # Port of Surface Pi
 
@@ -23,6 +24,7 @@ while binding:
         "Binding"
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Pygame Initializations
+
 
 pygame.init()           # Initialize pygame
 pygame.camera.init()
@@ -66,6 +68,7 @@ class TextBox:  # Creates an object to work similarly to a text box.
 
     def unindent(self,multiplier):
         self.x -= (10*multiplier)
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Define GUI Variables
 
@@ -126,6 +129,7 @@ while not camConnected:
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Joystick & Gamepad Variables/Setup
 
+
 # Define name of required hardware
 gamepadName = "Sony PLAYSTATION(R)3 Controller"
 joystickName = "Logitech Logitech Extreme 3D"
@@ -173,7 +177,7 @@ else:
 """"""
 # Screenshot Variables
 
-screenshotsLeft = []    # Both used to store screenshots
+screenshotsLeft = []    # Stores screenshots
 screenshotsRight = []   # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 screenshotLeft = None   # Holds the selected screenshot to be displayed on the Left
@@ -189,8 +193,7 @@ ssDisplayedIndexL = 0    # Stores index of screenshotsLeft being displayed
 ssDisplayedIndexR = 0    # Stores index of screenshotsRight being displayed
 
 """"""
-camConnected = 0
-image = ""
+
 running = True   # Main loop ends when this = False.
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -207,6 +210,13 @@ clawUDPosition = 90
 clawGraspPosition = 0   # May need to reverse
 camUDPosition = 90
 armLRPosition = 90
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Data Received from ROV
+
+# Define Sensor Data at default
+temperatureVal = 0.0
+depthVal = 0.0
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
@@ -286,7 +296,7 @@ while running:
 
         for b in [1, 2, 12, 13, 14, 15]:  # Checks for changes to screenshot and camera variables
 
-            # Left Joystick
+            # Left Joystick Clicked
             if b == 1:  # Flip through saved Left Screenshots
                 if ssWaitL == 0:
                     if gamepad.get_button(b) == 1:
@@ -303,7 +313,7 @@ while running:
                     if ssWaitL >= 10:
                         ssWaitL = 0
 
-            # Right Joystick
+            # Right Joystick Clicked
             if b == 2:  # Flip through saved Right Screenshots
                 if ssWaitR == 0:
                     if gamepad.get_button(b) == 1:
@@ -408,7 +418,6 @@ while running:
                 MVerticalValue = 1500 - (400 * throttle)
             else:
                 MVerticalValue = 1500
-                MHorizontalValue = 1500
 
             # Crab
             if a == 0:
@@ -484,7 +493,7 @@ while running:
     strClawGraspPosition = str(clawGraspPosition)
     strCamUDServo = str(camUDPosition)
 
-    
+    # Add leading 0's to servo values
     if len(strClawUDPosition) == 1:
         strClawUDPosition = "00" + strClawUDPosition
     elif len(strClawUDPosition) == 2:
@@ -517,9 +526,10 @@ while running:
     rData, addr = sock.recvfrom(1024)
     rData = rData.decode('utf-8')
     
-    # Translate data received
-    # Set Sensor Values
-    
+    # INCOMPLETE, NEED TO RECEIVE DATA 1st, THEN TRANSLATE AND SET
+    # Translate data received & Set Sensor Values
+    temperatureVal = 0.0 
+    depthVal = 0.0
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Update GUI
 

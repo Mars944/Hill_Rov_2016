@@ -1,8 +1,12 @@
 import pygame
-import pygame.camera
 import socket
 from time import sleep
-from ROVFunctions import changeInterval
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Define Functions
+
+def changeInterval(x, in_min, in_max, out_min, out_max):     # Identical to Arduino map() function
+        return int( (x-in_min) * (out_max-out_min) // (in_max-in_min) + out_min )
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Set up UDP (Treated as Client)
@@ -11,7 +15,7 @@ from ROVFunctions import changeInterval
 UDP_IP = "192.168.1.10"  # Static IP of Surface Pi
 UDP_PORT = 5000          # Port of Surface Pi
 
-server = ('192.168.1.11', 5001)  # IP & Port of Sub Pi
+server = ('192.168.1.11', 5001)  # IP & Port of Sub Pi (192.168.1.11)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Create Socket connection(IPv4, UDP)
 
@@ -25,9 +29,7 @@ while binding:
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Pygame Initializations
 
-
 pygame.init()           # Initialize pygame
-pygame.camera.init()
 pygame.joystick.init()  # Initialize the Joystick library
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -107,28 +109,14 @@ camDisconnectedText.changeColor(RED)
 # Create Window
 
 pygame.display.set_icon(icon)                                      # Sets Window's Icon
-pygame.display.set_caption("PITA Companion App")           # Sets Window's Title
+pygame.display.set_caption("True Companion App")           # Sets Window's Title
 screen = pygame.display.set_mode((display_width, display_length))  # Creates Window/screen
 screen.fill(GRAY)
 clock.tick(60)                                                     # Sets FPS to 60
 pygame.display.update()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# Setup Camera
-
-camConnected = 0
-while not camConnected:
-    try:
-        cam = pygame.camera.Camera("/dev/video0", (480, 360))
-        cam.start()
-        print("Camera Connected")
-        camConnected = 1
-    except:
-        print("Searching for Camera")
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Joystick & Gamepad Variables/Setup
-
 
 # Define name of required hardware
 gamepadName = "Sony PLAYSTATION(R)3 Controller"
@@ -174,42 +162,41 @@ else:
     a24 = 0
     a25 = 0
 
-""""""
-# Screenshot Variables
-
-screenshotsLeft = []    # Stores screenshots
-screenshotsRight = []   # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-screenshotLeft = None   # Holds the selected screenshot to be displayed on the Left
-screenshotRight = None  # Holds the selected screenshot to be displayed on the Right
-
-ssWaitL = 0    # Waits for X counts before allowing next screenshot
-ssWaitR = 0    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-squareWait = 0    # Waits for X counts before allowing next button use
-circleWait = 0    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-ssDisplayedIndexL = 0    # Stores index of screenshotsLeft being displayed
-ssDisplayedIndexR = 0    # Stores index of screenshotsRight being displayed
-
-""""""
-
 running = True   # Main loop ends when this = False.
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Data to be sent to ROV
 
 # Define Motor Values at default (in mS).
-MLeftValue = 1500
-MRightValue = 1500
-MVerticalValue = 1500
-MHorizontalValue = 1500
+MLeftValue = 410
+MRightValue = 410
+MVerticalValue = 410
+MHorizontalValue = 410
+
+# Configure default servo pulse lengths
+wrist_mid   = 430  
+wrist_plus  = 580
+wrist_minus = 280
+
+claw_mid  = 335
+claw_plus = 420
+claw_minus = 250
+
+arm_mid   = 410
+arm_plus  = 550
+arm_minus = 270
+
+cam_max   = 430  # +-128 (Real cam mid, but treated like max)
+cam_min   = 300
+cam_mid   = 365
 
 # Write Servo's to Default
-clawUDPosition = 90
-clawGraspPosition = 0   # May need to reverse
-camUDPosition = 90
-armLRPosition = 90
+clawUDPosition    = wrist_mid
+clawGraspPosition = claw_mid
+camUDPosition     = cam_mid
+armLRPosition     = arm_mid
+
+universal_thruster_mid = 410
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Data Received from ROV
@@ -236,16 +223,6 @@ while running:
     valArmText.reset()
     
     screen.fill(GRAY)  # Resets background to Gray
-    
-    # Attempt to Display Video Feed
-    screen.blit(pygame.transform.scale(cam.get_image(), (524, 393)), (0, 0))  # Will be replaced with value from ROV
-
-    # Displays screenshots
-    pygame.draw.rect(screen, ORANGE, (535, 399, 673, 250))  # 535 399 673 250
-    if screenshotLeft is not None:   # Might change to != None
-        screen.blit(pygame.transform.scale(screenshotLeft, (320, 240)), (548, 409))
-    if screenshotRight is not None:  # Might change to != None
-        screen.blit(pygame.transform.scale(screenshotRight, (320, 240)), (876, 409))
 
     # Display Titles
     motorTitleText.Print(screen, "Motor Values:")
@@ -256,119 +233,55 @@ while running:
     """ Presume Up & Right to be +1. May need to reverse on a case by case basis. """
 
     if gamepadConnected:
-        for b in [4, 5, 6, 7, 8, 9]:  # Checks for all arm related servo value changes
-
-            # Up on D-pad
-            if b == 4:  # Extend Arm
-                if gamepad.get_button(b) == 1:
-                    if clawUDPosition > 0:
-                        clawUDPosition -= 1
+        for b in [4, 5, 6, 7, 8, 9, 12, 14]:  # Checks for all arm related servo value changes
 
             # Down on D-pad
-            elif b == 6:  # Withdraw Arm
+            if b == 6:   # Move Wrist Up
                 if gamepad.get_button(b) == 1:
-                    if clawUDPosition < 180:
+                    if clawUDPosition >= wrist_minus:
+                        clawUDPosition -= 1
+
+            # Up on D-pad
+            elif b == 4:  # Move Wrist Down
+                if gamepad.get_button(b) == 1:
+                    if clawUDPosition <= wrist_plus:
                         clawUDPosition += 1
 
             # Left on D-pad
-            elif b == 7:
+            elif b == 7:  # Move Arm Left
                 if gamepad.get_button(b) == 1:
-                    if armLRPosition > 0:
+                    if armLRPosition >= arm_minus:
                         armLRPosition -= 1
 
             # Right on D-pad
-            elif b == 5:
+            elif b == 5:  # Move Arm Right
                 if gamepad.get_button(b) == 1:
-                    if armLRPosition < 180:
+                    if armLRPosition <= arm_plus:
                         armLRPosition += 1
 
-            # Right Trigger
-            elif b == 9:  # Close Claw
+            # Left Trigger
+            elif b == 8:  # Close Claw
                 if gamepad.get_button(b) == 1:
-                    if clawGraspPosition < 180:
+                    if clawGraspPosition <= claw_plus:
                         clawGraspPosition += 1
 
-            # Left Trigger
-            elif b == 8:  # Open Claw
+            # Right Trigger
+            elif b == 9:  # Open Claw
                 if gamepad.get_button(b) == 1:
-                    if clawGraspPosition > 0:
+                    if clawGraspPosition >= claw_minus:
                         clawGraspPosition -= 1
-
-        for b in [1, 2, 12, 13, 14, 15]:  # Checks for changes to screenshot and camera variables
-
-            # Left Joystick Clicked
-            if b == 1:  # Flip through saved Left Screenshots
-                if ssWaitL == 0:
-                    if gamepad.get_button(b) == 1:
-                        if not screenshotsLeft:
-                            pass
-                        else:
-                            ssDisplayedIndexL += 1
-                            if ssDisplayedIndexL >= len(screenshotsLeft):
-                                ssDisplayedIndexL = 0
-                            screenshotLeft = screenshotsLeft[ssDisplayedIndexL]
-                            ssWaitL += 1
-                else:
-                    ssWaitL += 1
-                    if ssWaitL >= 10:
-                        ssWaitL = 0
-
-            # Right Joystick Clicked
-            if b == 2:  # Flip through saved Right Screenshots
-                if ssWaitR == 0:
-                    if gamepad.get_button(b) == 1:
-                        if not screenshotsRight:
-                            pass
-                        else:
-                            ssDisplayedIndexR += 1
-                            if ssDisplayedIndexR >= len(screenshotsRight):
-                                ssDisplayedIndexR = 0
-                            screenshotRight = screenshotsRight[ssDisplayedIndexR]
-                            ssWaitR += 1
-                else:
-                    ssWaitR += 1
-                    if ssWaitR >= 10:
-                        ssWaitR = 0
 
             # Triangle Button
             if b == 12:  # Move Camera Servo Up
                 if gamepad.get_button(b) == 1:
-                    if camUDPosition < 180:
+                    if camUDPosition <= cam_max:
                         camUDPosition += 1
-
-            # Circle Button
-            elif b == 13:  # Save Screenshot to RightArray
-                if circleWait == 0:
-                    if camConnected:
-                        if gamepad.get_button(b) == 1:
-                            screenshotsRight.append(cam.get_image())
-                            ssDisplayedIndexR = len(screenshotsRight) - 1
-                            screenshotRight = screenshotsRight[len(screenshotsRight) - 1]
-                            circleWait += 1
-                else:
-                    circleWait += 1
-                    if circleWait >= 10:
-                        circleWait = 0
 
             # X Button
             elif b == 14:  # Move Camera Servo Down
                 if gamepad.get_button(b) == 1:
-                    if camUDPosition > 0:
+                    if camUDPosition >= cam_min:
                         camUDPosition -= 1
-
-            # Square Button
-            elif b == 15:  # Save Screenshot to LeftArray
-                if squareWait == 0:
-                    if camConnected:
-                        if gamepad.get_button(b) == 1:
-                            screenshotsLeft.append(cam.get_image())
-                            ssDisplayedIndexL = len(screenshotsLeft) - 1
-                            screenshotLeft = screenshotsLeft[len(screenshotsLeft) - 1]
-                            squareWait += 1
-                else:
-                    squareWait += 1
-                    if squareWait >= 10:
-                        squareWait = 0
 
         # Check motion tracker to see if gamepad is disconnected.
         OGa23 = a23
@@ -413,48 +326,43 @@ while running:
 
             # Up/Down
             if joystick.get_hat(0) == (-1, 1) or joystick.get_hat(0) == (0, 1) or joystick.get_hat(0) == (1, 1):
-                MVerticalValue = 1500 + (400 * throttle)
+                MVerticalValue = universal_thruster_mid + (256 * throttle)
             elif joystick.get_hat(0) == (-1, -1) or joystick.get_hat(0) == (0, -1) or joystick.get_hat(0) == (1, -1):
-                MVerticalValue = 1500 - (400 * throttle)
+                MVerticalValue = universal_thruster_mid - (256 * throttle)
             else:
-                MVerticalValue = 1500
-
-            # Crab
-            if a == 0:
-                valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500 - (400 * throttle), 1500 + (400 * throttle))
-                MHorizontalValue = valAxis
+                MVerticalValue = universal_thruster_mid
 
             # Forward-Backward
-            elif a == 1:
-                valAxis = changeInterval(-joystick.get_axis(a), -1, 1, 1500 - (400 * throttle), 1500 + (400 * throttle))
+            if a == 1:
+                valAxis = changeInterval(-joystick.get_axis(a), -1, 1, universal_thruster_mid - (256 * throttle), universal_thruster_mid + (256 * throttle))
                 MLeftValue = valAxis
                 MRightValue = valAxis
 
             # Yaw
             elif a == 2:
                 yawChange = joystick.get_axis(a)  # [-1 to 1]
-                yaw = yawChange * 200 * throttle  # 200 can equal up to 400
+                yaw = yawChange * 128 * throttle  # 128 can equal up to 256
 
                 # If MRightValue is Increasing
                 if yawChange < 0:
-                    if MRightValue + yaw > 1900:  # Checks to see if new MRightValue > 1900. If so, Offputs change to MLeftValue
-                        MRightValue = 1900
-                        MLeftValue = MLeftValue - yaw - (MRightValue + yaw) + 1900
-                    elif MRightValue - yaw < 1100:  # Checks to see if new MLeftValue < 1100. If so, Offputs change to MRightValue
-                        MLeftValue = 1100
-                        MRightValue = MRightValue + yaw + (MLeftValue - yaw) - 1100
+                    if MRightValue + yaw > universal_thruster_mid+256:  # Checks to see if new MRightValue > value cap. If so, Offputs change to MLeftValue
+                        MRightValue = universal_thruster_mid+256
+                        MLeftValue = MLeftValue - yaw - (MRightValue + yaw) + universal_thruster_mid+256
+                    elif MRightValue - yaw < universal_thruster_mid-256:  # Checks to see if new MLeftValue < minimum value cap. If so, Offputs change to MRightValue
+                        MLeftValue = universal_thruster_mid-256
+                        MRightValue = MRightValue + yaw + (MLeftValue - yaw) - universal_thruster_mid-256
                     else:
                         MLeftValue += yaw
                         MRightValue -= yaw
 
                 # If MLeftValue is Increasing.
                 elif yawChange > 0:
-                    if MLeftValue + yaw > 1900:  # Checks to see if new MLeftValue > 1900. If so, Offputs change to MRightValue
-                        MLeftValue = 1900
-                        MRightValue = MRightValue - yaw - (MLeftValue + yaw) + 1900
-                    elif MRightValue - yaw < 1100:  # Checks to see if new MRightValue < 1100. If so, Offputs change to MLeftValue
-                        MRightValue = 1100
-                        MLeftValue = MVerticalValue + yaw + (MRightValue - yaw) - 1100
+                    if MLeftValue + yaw > universal_thruster_mid+256:  # Checks to see if new MLeftValue > 1900. If so, Offputs change to MRightValue
+                        MLeftValue = universal_thruster_mid+256
+                        MRightValue = MRightValue - yaw - (MLeftValue + yaw) + universal_thruster_mid+256
+                    elif MRightValue - yaw < universal_thruster_mid-256:  # Checks to see if new MRightValue < 1100. If so, Offputs change to MLeftValue
+                        MRightValue = universal_thruster_mid-256
+                        MLeftValue = MVerticalValue + yaw + (MRightValue - yaw) - universal_thruster_mid-256
                     else:
                         MLeftValue += yaw
                         MRightValue -= yaw
@@ -488,31 +396,10 @@ while running:
     # Prepare & send data to be sent to ROV
     
     # Cast Servos as strings
-    strClawUDPosition = str(clawUDPosition)
-    strArmLRPosition = str(armLRPosition)
-    strClawGraspPosition = str(clawGraspPosition)
-    strCamUDServo = str(camUDPosition)
-
-    # Add leading 0's to servo values
-    if len(strClawUDPosition) == 1:
-        strClawUDPosition = "00" + strClawUDPosition
-    elif len(strClawUDPosition) == 2:
-        strClawUDPosition = "0" + strClawUDPosition
-
-    if len(strArmLRPosition) == 1:
-        strArmLRPosition = "00" + strArmLRPosition
-    elif len(strArmLRPosition) == 2:
-        strArmLRPosition = "0" + strArmLRPosition
-
-    if len(strClawGraspPosition) == 1:
-        strClawGraspPosition = "00" + strClawGraspPosition
-    elif len(strClawGraspPosition) == 2:
-        strClawGraspPosition = "0" + strClawGraspPosition
-
-    if len(strCamUDServo) == 1:
-        strCamUDServo = "00" + strCamUDServo
-    elif len(strCamUDServo) == 2:
-        strCamUDServo = "0" + strCamUDServo
+    strClawUDPosition    = str(int(clawUDPosition))
+    strArmLRPosition     = str(int(armLRPosition))
+    strClawGraspPosition = str(int(clawGraspPosition))
+    strCamUDServo        = str(int(camUDPosition))
         
     # Data to be sent to ROV (28 bytes)
     sData = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo
@@ -542,33 +429,76 @@ while running:
 
     # Display Value of all motors
     if joystickConnected:
-        valMotorsText.Print(screen, "Motor 1: " + str(MLeftValue))
-        valMotorsText.newLine()
 
-        valMotorsText.Print(screen, "Motor 2: " + str(MRightValue))
-        valMotorsText.newLine()
+        # Display Left Motor Vector Speed
+        try:
+            tempStringNumVal = changeInterval(MLeftValue, (universal_thruster_mid - (256 * throttle)), (universal_thruster_mid + (256 * throttle)), -100, 100)
+            if tempStringNumVal > 100:
+                tempStringNumVal = 100
+            elif tempStringNumVal < -100:
+                tempStringNumVal = -100
 
-        valMotorsText.Print(screen, "Motor 3: " + str(MVerticalValue))
-        valMotorsText.newLine()
+            valMotorsText.Print(screen, "Left Motor: " + str(tempStringNumVal) +"%")
+            valMotorsText.newLine()
+        except:
+            valMotorsText.Print(screen, "Left Motor: 0%")
+            valMotorsText.newLine()
 
-        valMotorsText.Print(screen, "Motor 4: " + str(MHorizontalValue))
-        valMotorsText.newLine()
+        # Display Right Motor Vector Speed
+        try:
+            tempStringNumVal = changeInterval(MRightValue, (universal_thruster_mid - (256 * throttle)), (universal_thruster_mid + (256 * throttle)), -100, 100)
+            if tempStringNumVal > 100:
+                tempStringNumVal = 100
+            elif tempStringNumVal < -100:
+                tempStringNumVal = -100
+
+            valMotorsText.Print(screen, "Right Motor: " + str(tempStringNumVal) +"%")
+            valMotorsText.newLine()
+        except:
+            valMotorsText.Print(screen, "Right Motor: 0%")
+            valMotorsText.newLine()
+
+        # Display Vertical Motor Vector Speed
+        try:
+            tempStringNumVal = changeInterval(MVerticalValue, (universal_thruster_mid - (256 * throttle)), (universal_thruster_mid + (256 * throttle)), -100, 100)
+            if tempStringNumVal > 100:
+                tempStringNumVal = 100
+            elif tempStringNumVal < -100:
+                tempStringNumVal = -100
+
+
+            valMotorsText.Print(screen, "Vertical Motor: " + str(tempStringNumVal) +"%")
+            valMotorsText.newLine()
+        except:
+            valMotorsText.Print(screen, "Vertical Motor: 0%")
+            valMotorsText.newLine()
+
+        # Display Arm Values
+        if gamepadConnected:
+            valMotorsText.changeColor(BLACK)
+
+            # Display Arm
+            valMotorsText.Print(screen, "Arm: "+ strArmLRPosition)
+            valMotorsText.newLine()
+
+            # Display Wrist
+            valMotorsText.Print(screen, "Wrist: "+ strClawUDPosition)
+            valMotorsText.newLine()
+
+            # Display Claw
+            valMotorsText.Print(screen, "Claw: "+ strClawGraspPosition)
+            valMotorsText.newLine()
+            
     else:
         if not joystickConnected:
             valMotorsText.changeColor(RED)
             valMotorsText.Print(screen, "Joystick is DISCONNECTED")
             valMotorsText.newLine()
             valMotorsText.changeColor(BLACK)
-    if gamepadConnected:
-        # Update Screen with arm values
-        pass
-    else:
-        valArmText.changeColor(RED)
-        valArmText.Print(screen, "Gamepad is DISCONNECTED")
 
-    # Attempt to Display Video Feed
-    screen.blit(pygame.transform.scale(cam.get_image(), (524, 393)), (0, 0))  # Will be replaced with value from ROV
     
+
+
     pygame.display.update()
     clock.tick(60)  # Sets FPS to 60
 

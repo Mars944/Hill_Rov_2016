@@ -96,8 +96,14 @@ icon = pygame.image.load('resources/Hill_Logo.png')
 # TextBox Objects
 motorTitleText      =TextBox(int(display_hyp*(40/1371)), int(display_width*(700/1208)), int(display_length*(50/649)))  # Title: "Motor Values"
 sensTitleText       =TextBox(int(display_hyp*(40/1371)), int(display_width*(10/1208)),  int(display_length*(481/649))) # Title: "Sensor Values"
+gamepadReminderText =TextBox(int(display_hyp*(20/1371)), int(display_width*(1/1208)),   int(display_length*(395/649))) # Reminder: Reminds user to mash playstation button after reconnect
 valArmText          =TextBox(int(display_hyp*(40/1371)), int(display_width*(170/1208)), int(display_length*(400/649))) # Data: Arm Values
 valMotorsText       =TextBox(int(display_hyp*(30/1371)), int(display_width*(700/1208)), int(display_length*(90/649)))  # Data: Motor Values
+camDisconnectedText =TextBox(int(display_hyp*(40/1371)), int(display_width*(10/1208)),  int(display_length*(10/649)))  # Disconnect: Warns that Camera is Disconnected
+
+# Changes Color of certain TextBoxes
+gamepadReminderText.changeColor(RED)
+camDisconnectedText.changeColor(RED)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Create Window
@@ -113,15 +119,22 @@ pygame.display.update()
 # Joystick & Gamepad Variables/Setup
 
 # Define name of required hardware
+gamepadName = "Sony PLAYSTATION(R)3 Controller"
 joystickName = "Logitech Logitech Extreme 3D"
 
 # Number of connected joysticks (Note: gamepads are considered joysticks)
-joystick_count = pygame.joystick.get_count()  # (should = 1) 
+joystick_count = pygame.joystick.get_count()  # (should = 2) 
 
 # Find what joysticks are connected
+gamepadConnected = False
 joystickConnected = False
 for i in range(joystick_count):
-    if pygame.joystick.Joystick(i).get_name() == joystickName:
+    if pygame.joystick.Joystick(i).get_name() == gamepadName:
+        gamepad = pygame.joystick.Joystick(i)
+        gamepad.init()
+        gamepadConnected = True
+        print("Gamepad Connected!")
+    elif pygame.joystick.Joystick(i).get_name() == joystickName:
         joystick = pygame.joystick.Joystick(i)
         joystick.init()
         joystickConnected = True
@@ -136,6 +149,18 @@ notMoved = True  # Checks to see if throttle has been moved from 0.
 throttle = 0     # Define throttle to start at 0.
 
 """"""
+# Used to check if gamepad has been disconnected.
+
+disconnectingCount = 0  # Counts to 50 to see if ps3 axes 23-25 are equal all 50 times.
+
+if gamepadConnected:
+    a23 = gamepad.get_axis(23)
+    a24 = gamepad.get_axis(24)
+    a25 = gamepad.get_axis(25)
+else:
+    a23 = 0
+    a24 = 0
+    a25 = 0
 
 running = True   # Main loop ends when this = False.
 
@@ -143,27 +168,23 @@ running = True   # Main loop ends when this = False.
 # Data to be sent to ROV
 
 # Define Motor Values at default (in mS).
-
-universal_thruster_mid = 410
-thruster_max     = 410+256
-thruster_min     = 410-256
-MLeftValue       = universal_thruster_mid
-MRightValue      = universal_thruster_mid
-MVerticalValue   = universal_thruster_mid
-MHorizontalValue = universal_thruster_mid
+MLeftValue = 410
+MRightValue = 410
+MVerticalValue = 410
+MHorizontalValue = 410
 
 # Configure default servo pulse lengths
 wrist_mid   = 430  
-wrist_max  = 580
-wrist_min = 280
+wrist_plus  = 580
+wrist_minus = 280
 
 claw_mid  = 335
-claw_max = 420
-claw_min = 250
+claw_plus = 420
+claw_minus = 250
 
 arm_mid   = 410
-arm_max  = 550
-arm_min = 270
+arm_plus  = 550
+arm_minus = 270
 
 cam_max   = 430  # +-128 (Real cam mid, but treated like max)
 cam_min   = 300
@@ -174,6 +195,8 @@ clawUDPosition    = wrist_mid
 clawGraspPosition = claw_mid
 camUDPosition     = cam_mid
 armLRPosition     = arm_mid
+
+universal_thruster_mid = 410
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Data for Temperature ROV
@@ -206,14 +229,90 @@ while running:
     # Display Titles
     motorTitleText.Print(screen, "Motor Values:")
     sensTitleText.Print(screen, "Sensor Values:")
+    gamepadReminderText.Print(screen, "Mash <Playstation Button> after Reconnect!")
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     """ Presume Up & Right to be +1. May need to reverse on a case by case basis. """
 
+    if gamepadConnected:
+        for b in [3, 4, 5, 6, 7, 8, 9, 12, 14]:  # Checks for all arm related servo value changes
+
+            # Start Button
+            if b == 3:
+                if gamepad.get_button(b) == 3:
+                    sensorRequested = "1"
+
+
+            # Down on D-pad
+            if b == 6:   # Move Wrist Up
+                if gamepad.get_button(b) == 1:
+                    if clawUDPosition >= wrist_minus:
+                        clawUDPosition -= 1
+
+            # Up on D-pad
+            elif b == 4:  # Move Wrist Down
+                if gamepad.get_button(b) == 1:
+                    if clawUDPosition <= wrist_plus:
+                        clawUDPosition += 1
+
+            # Left on D-pad
+            elif b == 7:  # Move Arm Left
+                if gamepad.get_button(b) == 1:
+                    if armLRPosition >= arm_minus:
+                        armLRPosition -= 1
+
+            # Right on D-pad
+            elif b == 5:  # Move Arm Right
+                if gamepad.get_button(b) == 1:
+                    if armLRPosition <= arm_plus:
+                        armLRPosition += 1
+
+            # Left Trigger
+            elif b == 8:  # Close Claw
+                if gamepad.get_button(b) == 1:
+                    if clawGraspPosition <= claw_plus:
+                        clawGraspPosition += 1
+
+            # Right Trigger
+            elif b == 9:  # Open Claw
+                if gamepad.get_button(b) == 1:
+                    if clawGraspPosition >= claw_minus:
+                        clawGraspPosition -= 1
+
+            # Triangle Button
+            if b == 12:  # Move Camera Servo Up
+                if gamepad.get_button(b) == 1:
+                    if camUDPosition <= cam_max:
+                        camUDPosition += 1
+
+            # X Button
+            elif b == 14:  # Move Camera Servo Down
+                if gamepad.get_button(b) == 1:
+                    if camUDPosition >= cam_min:
+                        camUDPosition -= 1
+
+        # Check motion tracker to see if gamepad is disconnected.
+        OGa23 = a23
+        OGa24 = a24
+        OGa25 = a25
+
+        a23 = gamepad.get_axis(23)
+        a24 = gamepad.get_axis(24)
+        a25 = gamepad.get_axis(25)
+        if OGa23 == a23 and OGa24 == a24 and OGa25 == a25:
+            disconnectingCount += 1
+            if disconnectingCount == 100:
+                gamepadConnected = False
+                disconnectingCount = 0
+        else:
+            disconnectingCount = 0
+
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Reads Joystick input
 
     if joystickConnected:
-       numAxes = joystick.get_numaxes()  # Gets number of axis on Joystick
+
+        numAxes = joystick.get_numaxes()  # Gets number of axis on Joystick
 
         # Checks each axis on the Joystick
         for a in range(numAxes - 1):
@@ -233,13 +332,13 @@ while running:
             """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
             # Update local Motor Values
 
-            # Cam Up/Down
+            # Up/Down
             if joystick.get_hat(0) == (-1, 1) or joystick.get_hat(0) == (0, 1) or joystick.get_hat(0) == (1, 1):
-                if camUDPosition <= cam_max:
-                        camUDPosition += 1
+                MVerticalValue = universal_thruster_mid + (256 * throttle)
             elif joystick.get_hat(0) == (-1, -1) or joystick.get_hat(0) == (0, -1) or joystick.get_hat(0) == (1, -1):
-                if camUDPosition >= cam_min:
-                        camUDPosition -= 1
+                MVerticalValue = universal_thruster_mid - (256 * throttle)
+            else:
+                MVerticalValue = universal_thruster_mid
 
             # Forward-Backward
             if a == 1:
@@ -276,72 +375,24 @@ while running:
                         MLeftValue += yaw
                         MRightValue -= yaw
 
-        # Checks Button Values
-        for x in range(9):
-            
-            # Trigger Button
-            if b == 0:  # Close Claw
-                if gamepad.get_button(b) == 1:
-                    if clawGraspPosition <= claw_max:
-                        clawGraspPosition += 1
-
-            # Thumb (2) Button
-            elif b == 1:  # Open Claw
-                if gamepad.get_button(b) == 1:
-                    if clawGraspPosition >= claw_min:
-                        clawGraspPosition -= 1
-
-            # 3 Button
-            elif b == 2:  # Move Arm Right
-                if gamepad.get_button(b) == 1:
-                    if armLRPosition <= arm_max:
-                        armLRPosition += 1
-
-            # 4 Button
-            elif b == 3:  # Move Wrist Down
-                if gamepad.get_button(b) == 1:
-                    if clawUDPosition <= wrist_max:
-                        clawUDPosition += 1
-
-            # 5 Button
-            elif b == 4:  # Move Arm Left
-                if gamepad.get_button(b) == 1:
-                    if armLRPosition >= arm_min:
-                        armLRPosition -= 1
-
-            # 6 Button
-            elif b == 5:   # Move Wrist Up
-                if gamepad.get_button(b) == 1:
-                    if clawUDPosition >= wrist_min:
-                        clawUDPosition -= 1
-
-            # 7 Button
-            elif b == 6:  # Toggle Vertical Motor Negative
-                 if gamepad.get_button(b) == 1:
-                    MVerticalValue = universal_thruster_mid-(256*throttle)
-
-            # 8 Button
-            elif b == 7:  # Toggle Vertical Motor Positive
-                if gamepad.get_button(b) == 1:
-                    MVerticalValue = universal_thruster_mid+(256*throttle)
-
-            # 11 Button
-            elif b == 8 and sensorRequested == "0":  # Request Sensor Data
-                if gamepad.get_button(b+2) == 1:
-                    sensorRequested = "1"
-
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # If no joysticks are detected, try to reconnect
 
-    if not joystickConnected:
+    if not gamepadConnected and not joystickConnected:
         # Rescans connected joysticks
         pygame.joystick.quit()
         pygame.joystick.init()
         joystick_count = pygame.joystick.get_count()
 
+        gamepadConnected = False
         joystickConnected = False
         for i in range(joystick_count):
-            if pygame.joystick.Joystick(i).get_name() == joystickName:
+            if pygame.joystick.Joystick(i).get_name() == gamepadName:
+                gamepad = pygame.joystick.Joystick(i)
+                gamepad.init()
+                gamepadConnected = True
+                print("Gamepad Connected!")
+            elif pygame.joystick.Joystick(i).get_name() == joystickName:
                 joystick = pygame.joystick.Joystick(i)
                 joystick.init()
                 joystickConnected = True
@@ -359,7 +410,7 @@ while running:
     strCamUDServo        = str(int(camUDPosition))
         
     # Data to be sent to ROV (28 bytes)
-    sData = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo
+    sData = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo + sensorRequested
     sData = sData.encode('utf-8')
     
     sock.sendto(sData, server)  # Send the data to the ROV

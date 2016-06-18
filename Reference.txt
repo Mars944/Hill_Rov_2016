@@ -24,8 +24,19 @@ Gamepad Button Mapping:
 Joystick motors == Logitech... (name missing)
 
 Joystick Button Mapping:
-- Left-Right == Axis 0
+- Left-Right       == Axis 0
 - Forward-Backward == Axis 1
-- Yaw == Axis 2
-- Throttle == Axis 3
-- Up-Down == Hat 0 (not finished)
+- Yaw              == Axis 2
+- Throttle         == Axis 3
+- Up-Down          == Hat 0 (not finished)
+- Hat              == 0
+
+- Trigger Button   == 0
+- Thumb Button     == 1
+- 3 Button         == 2
+- 4 Button         == 3
+- 5 Button         == 4
+- 6 Button         == 5
+- 7 Button         == 6
+- 8 Button         == 7
+- 11 Button        == 10

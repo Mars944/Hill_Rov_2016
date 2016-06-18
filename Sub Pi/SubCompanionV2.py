@@ -130,7 +130,7 @@ while running:
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Read and Prepare Sensor data (Code from https://www.controleverything.com/content/Pressure?sku=MS5837-30BA01_I2CS#tabs-0-product_tabset-2)
 
-    while True:
+    if sensorRequested:
         # Read 12 bytes of calibration data
         # Read pressure sensitivity
         data = bus.read_i2c_block_data(0x76, 0xA2, 2)
@@ -205,14 +205,14 @@ while running:
         SENS2 = SENS - SENS2
         pressure = ((((D1 * SENS2) / 2097152) - OFF2) / 8192) / 10.0
         
-        depth = pressure/(1000*9.8)
+        mDepth = pressure-10.36080766
         cTemp = TEMP / 100.0
-
+        sensorRequested=0
 	
 	""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Send Data to Surface if Requested
 
-    sData = "5char" # 5characters for temp. ? for pressure
+    sData = str(cTemp)+"_"+str(mDepth) # Need Character amounts
     sData = sData.encode('utf-8')
 
     sock.sendto(sData, addr)

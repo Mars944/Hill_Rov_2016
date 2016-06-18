@@ -95,9 +95,8 @@ icon = pygame.image.load('resources/Hill_Logo.png')
 
 # TextBox Objects
 motorTitleText      =TextBox(int(display_hyp*(40/1371)), int(display_width*(700/1208)), int(display_length*(50/649)))  # Title: "Motor Values"
-sensTitleText       =TextBox(int(display_hyp*(40/1371)), int(display_width*(10/1208)),  int(display_length*(481/649))) # Title: "Sensor Values"
 valArmText          =TextBox(int(display_hyp*(40/1371)), int(display_width*(170/1208)), int(display_length*(400/649))) # Data: Arm Values
-valMotorsText       =TextBox(int(display_hyp*(30/1371)), int(display_width*(700/1208)), int(display_length*(90/649)))  # Data: Motor Values
+valuesText          =TextBox(int(display_hyp*(30/1371)), int(display_width*(700/1208)), int(display_length*(90/649)))  # Data: Motor Values
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Create Window
@@ -181,8 +180,8 @@ armLRPosition     = arm_mid
 sensorRequested = "0"
 
 # Define Sensor Data at default
-temperatureVal = 0.0
-depthVal = 0.0
+cTemp = 0.0
+mDepth = 0.0
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
@@ -198,14 +197,13 @@ while running:
     # Reset Display
 
     # Reset Value TextBox's
-    valMotorsText.reset()
+    valuesText.reset()
     valArmText.reset()
     
     screen.fill(GRAY)  # Resets background to Gray
 
-    # Display Titles
+    # Display Title
     motorTitleText.Print(screen, "Motor Values:")
-    sensTitleText.Print(screen, "Sensor Values:")
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     """ Presume Up & Right to be +1. May need to reverse on a case by case basis. """
@@ -359,7 +357,7 @@ while running:
     strCamUDServo        = str(int(camUDPosition))
         
     # Data to be sent to ROV (28 bytes)
-    sData = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo
+    sData = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo + sensorRequested
     sData = sData.encode('utf-8')
     
     sock.sendto(sData, server)  # Send the data to the ROV
@@ -370,19 +368,18 @@ while running:
     rData, addr = sock.recvfrom(1024)
     rData = rData.decode('utf-8')
     
-    # INCOMPLETE, NEED TO RECEIVE DATA 1st, THEN TRANSLATE AND SET
-    # Translate data received & Set Sensor Values
-    temperatureVal = 0.0 
-    depthVal = 0.0
+    cTemp  = rData[:rData.index("_")]
+    mDepth = rData[rData.index("_")+1:]
+
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Update GUI
 
     # Sets throttle text's color to Red if at 0.
     if throttle == 0:
-        valMotorsText.changeColor(RED)
+        valuesText.changeColor(RED)
 
-    valMotorsText.Print(screen, "Throttle: " + str(int(throttle * 100)) + "%")
-    valMotorsText.newLine()
+    valuesText.Print(screen, "Throttle: " + str(int(throttle * 100)) + "%")
+    valuesText.newLine()
 
     # Display Value of all motors
     if joystickConnected:
@@ -395,11 +392,11 @@ while running:
             elif tempStringNumVal < -100:
                 tempStringNumVal = -100
 
-            valMotorsText.Print(screen, "Left Motor: " + str(tempStringNumVal) +"%")
-            valMotorsText.newLine()
+            valuesText.Print(screen, "Left Motor: " + str(tempStringNumVal) +"%")
+            valuesText.newLine()
         except:
-            valMotorsText.Print(screen, "Left Motor: 0%")
-            valMotorsText.newLine()
+            valuesText.Print(screen, "Left Motor: 0%")
+            valuesText.newLine()
 
         # Display Right Motor Vector Speed
         try:
@@ -409,11 +406,11 @@ while running:
             elif tempStringNumVal < -100:
                 tempStringNumVal = -100
 
-            valMotorsText.Print(screen, "Right Motor: " + str(tempStringNumVal) +"%")
-            valMotorsText.newLine()
+            valuesText.Print(screen, "Right Motor: " + str(tempStringNumVal) +"%")
+            valuesText.newLine()
         except:
-            valMotorsText.Print(screen, "Right Motor: 0%")
-            valMotorsText.newLine()
+            valuesText.Print(screen, "Right Motor: 0%")
+            valuesText.newLine()
 
         # Display Vertical Motor Vector Speed
         try:
@@ -424,34 +421,39 @@ while running:
                 tempStringNumVal = -100
 
 
-            valMotorsText.Print(screen, "Vertical Motor: " + str(tempStringNumVal) +"%")
-            valMotorsText.newLine()
+            valuesText.Print(screen, "Vertical Motor: " + str(tempStringNumVal) +"%")
+            valuesText.newLine()
         except:
-            valMotorsText.Print(screen, "Vertical Motor: 0%")
-            valMotorsText.newLine()
+            valuesText.Print(screen, "Vertical Motor: 0%")
+            valuesText.newLine()
 
-        # Display Arm Values
-        if gamepadConnected:
-            valMotorsText.changeColor(BLACK)
+            # Display Arm Values
+            valuesText.changeColor(BLACK)
 
             # Display Arm
-            valMotorsText.Print(screen, "Arm: "+ strArmLRPosition)
-            valMotorsText.newLine()
+            valuesText.Print(screen, "Arm: "+ strArmLRPosition)
+            valuesText.newLine()
 
             # Display Wrist
-            valMotorsText.Print(screen, "Wrist: "+ strClawUDPosition)
-            valMotorsText.newLine()
+            valuesText.Print(screen, "Wrist: "+ strClawUDPosition)
+            valuesText.newLine()
 
             # Display Claw
-            valMotorsText.Print(screen, "Claw: "+ strClawGraspPosition)
-            valMotorsText.newLine()
+            valuesText.Print(screen, "Claw: "+ strClawGraspPosition)
+            valuesText.newLine()
+
+        # Display Sensor Values
+        valuesText.Print(screen, "Temperature: "+ cTemp + "°C")
+        valuesText.newLine()
+        valuesText.Print(screen, "Depth: "+ cTemp + " Meters")
+        valuesText.newLine()
             
     else:
         if not joystickConnected:
-            valMotorsText.changeColor(RED)
-            valMotorsText.Print(screen, "Joystick is DISCONNECTED")
-            valMotorsText.newLine()
-            valMotorsText.changeColor(BLACK)
+            valuesText.changeColor(ORANGE)
+            valuesText.Print(screen, "Joystick is DISCONNECTED")
+            valuesText.newLine()
+            valuesText.changeColor(BLACK)
 
     
 

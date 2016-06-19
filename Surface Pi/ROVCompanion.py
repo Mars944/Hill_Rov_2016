@@ -142,12 +142,11 @@ throttle = 0     # Define throttle to start at 0.
 # Define Motor Values at default (in mS).
 
 universal_thruster_mid = 410
-thruster_max     = 410+(256*.75)
-thruster_min     = 410-(256*.75)
-MLeftValue       = universal_thruster_mid
-MRightValue      = universal_thruster_mid
-MVerticalValue   = universal_thruster_mid
-MHorizontalValue = universal_thruster_mid
+thruster_max           = 600
+thruster_min           = 220
+MLeftValue             = universal_thruster_mid
+MRightValue            = universal_thruster_mid
+MVerticalValue         = universal_thruster_mid
 
 # Configure default servo pulse lengths
 wrist_mid = 430  
@@ -155,16 +154,16 @@ wrist_max = 580
 wrist_min = 280
 
 claw_mid  = 335
-claw_max  = 420
-claw_min  = 250
+claw_max  = 490
+claw_min  = 200
 
 arm_mid   = 410
 arm_max   = 550
 arm_min   = 270
 
-cam_max   = 430
-cam_min   = 300
 cam_mid   = 365
+cam_max   = 460
+cam_min   = 280
 
 # Write Servo's to Default
 clawUDPosition    = wrist_mid
@@ -178,8 +177,9 @@ armLRPosition     = arm_mid
 sensorRequested = "0"
 
 # Define Sensor Data at default
-cTemp = 0.0
-mDepth = 0.0
+cTemp    = "??.??"
+mDepth   = "??.??"
+pressure = "??.??"
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
@@ -210,7 +210,7 @@ while running:
     # Reads Joystick input
 
     if joystickConnected:
-       numAxes = joystick.get_numaxes()  # Gets number of axis on Joystick
+        numAxes = joystick.get_numaxes()  # Gets number of axis on Joystick
 
         # Checks each axis on the Joystick
         for a in range(numAxes - 1):
@@ -232,16 +232,16 @@ while running:
 
             # Cam Up/Down
             if joystick.get_hat(0) == (-1, 1) or joystick.get_hat(0) == (0, 1) or joystick.get_hat(0) == (1, 1):
-                if camUDPosition <= cam_max:
+                if camUDPosition < cam_max:
                         camUDPosition += 1
             elif joystick.get_hat(0) == (-1, -1) or joystick.get_hat(0) == (0, -1) or joystick.get_hat(0) == (1, -1):
-                if camUDPosition >= cam_min:
+                if camUDPosition > cam_min:
                         camUDPosition -= 1
 
             # Forward-Backward
             if a == 1:
                 valAxis = changeInterval(-joystick.get_axis(a), -1, 1, universal_thruster_mid - int(256 * throttle), universal_thruster_mid + int(256 * throttle))
-                MLeftValue = -valAxis
+                MLeftValue  = valAxis
                 MRightValue = valAxis
 
             # Yaw
@@ -273,58 +273,64 @@ while running:
                         MLeftValue += yaw
                         MRightValue -= yaw
 
+        vertRunning = True  # Used to test if the Vertical Motor buttons are being pressed.
         # Checks Button Values
-        for x in range(9):
+        for b in range(9):
             
-            # Trigger Button
-            if b == 0:  # Close Claw
-                if gamepad.get_button(b) == 1:
-                    if clawGraspPosition <= claw_max:
+            # Thumb (2) Button
+            if b == 1:  # Close Claw
+                if joystick.get_button(b) == 1:
+                    if clawGraspPosition < claw_max:
                         clawGraspPosition += 1
 
-            # Thumb (2) Button
-            elif b == 1:  # Open Claw
-                if gamepad.get_button(b) == 1:
-                    if clawGraspPosition >= claw_min:
+            # Trigger Button
+            elif b == 0:  # Open Claw
+                if joystick.get_button(b) == 1:
+                    if clawGraspPosition > claw_min:
                         clawGraspPosition -= 1
 
             # 3 Button
             elif b == 2:  # Move Arm Right
-                if gamepad.get_button(b) == 1:
-                    if armLRPosition <= arm_max:
+                if joystick.get_button(b) == 1:
+                    if armLRPosition < arm_max:
                         armLRPosition += 1
 
-            # 4 Button
-            elif b == 3:  # Move Wrist Down
-                if gamepad.get_button(b) == 1:
-                    if clawUDPosition <= wrist_max:
+            # 6 Button
+            elif b == 5:  # Move Wrist Down
+                if joystick.get_button(b) == 1:
+                    if clawUDPosition < wrist_max:
                         clawUDPosition += 1
 
             # 5 Button
             elif b == 4:  # Move Arm Left
-                if gamepad.get_button(b) == 1:
-                    if armLRPosition >= arm_min:
+                if joystick.get_button(b) == 1:
+                    if armLRPosition > arm_min:
                         armLRPosition -= 1
 
-            # 6 Button
-            elif b == 5:   # Move Wrist Up
-                if gamepad.get_button(b) == 1:
-                    if clawUDPosition >= wrist_min:
+            # 4 Button
+            elif b == 3:   # Move Wrist Up
+                if joystick.get_button(b) == 1:
+                    if clawUDPosition > wrist_min:
                         clawUDPosition -= 1
 
             # 7 Button
             elif b == 6:  # Toggle Vertical Motor Negative
-                 if gamepad.get_button(b) == 1:
+                if joystick.get_button(b) == 1:
                     MVerticalValue = universal_thruster_mid-(256*throttle)
+                else:
+                    vertRunning = False	 
 
             # 8 Button
             elif b == 7:  # Toggle Vertical Motor Positive
-                if gamepad.get_button(b) == 1:
+                if joystick.get_button(b) == 1:
                     MVerticalValue = universal_thruster_mid+(256*throttle)
+                else:
+                    if not vertRunning:
+                        MVerticalValue = universal_thruster_mid
 
             # 11 Button
             elif b == 8 and sensorRequested == "0":  # Request Sensor Data
-                if gamepad.get_button(b+2) == 1:
+                if joystick.get_button(b+2) == 1:
                     sensorRequested = "1"
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -354,21 +360,25 @@ while running:
     strArmLRPosition     = str(int(armLRPosition))
     strClawGraspPosition = str(int(clawGraspPosition))
     strCamUDServo        = str(int(camUDPosition))
-        
+
     # Data to be sent to ROV (28 bytes)
-    sData = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + str(int(MHorizontalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo + sensorRequested
+    sData = str(int(MLeftValue)) + str(int(MRightValue)) + str(int(MVerticalValue)) + strClawUDPosition + strArmLRPosition + strClawGraspPosition + strCamUDServo + sensorRequested
     sData = sData.encode('utf-8')
     
     sock.sendto(sData, server)  # Send the data to the ROV
-    
+    if not sensorRequested:
+        sleep(1.2)
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Receive sensor data from the ROV
     
     rData, addr = sock.recvfrom(1024)
     rData = rData.decode('utf-8')
-    
-    cTemp  = rData[:rData.index("_")]
-    mDepth = rData[rData.index("_")+1:]
+
+    if rData != "00000000000":
+	    cTemp    = rData[:rData.index("_")]
+	    mDepth   = rData[rData.index("_")+1:rData.index("$")]
+	    pressure = rData[rData.index("$")+1:]
+	    sensorRequested = "0"
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Update GUI
@@ -442,9 +452,11 @@ while running:
             valuesText.newLine()
 
         # Display Sensor Values
-        valuesText.Print(screen, "Temperature: "+ cTemp + "°C")
+        valuesText.Print(screen, "Temperature: "+ str(cTemp) + "°C")
         valuesText.newLine()
-        valuesText.Print(screen, "Depth: "+ cTemp + " Meters")
+        valuesText.Print(screen, "Depth: "+ str(mDepth) + " Meters")
+        valuesText.newLine()
+        valuesText.Print(screen, "Pressure: "+ str(pressure) + " mbar")
         valuesText.newLine()
             
     else:

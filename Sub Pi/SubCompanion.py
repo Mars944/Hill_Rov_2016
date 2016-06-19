@@ -41,18 +41,18 @@ wrist_plus  = 580
 wrist_minus = 280
 
 claw_mid    = 335
-claw_plus   = 420
-claw_minus  = 250
+claw_plus   = 490
+claw_minus  = 200
 
 arm_mid     = 410
 arm_plus    = 550
 arm_minus   = 270
 
-cam_mid   = 430
+cam_mid   = 365
 
-thruster_max = 410+(410*.75)
+thruster_max = 600
 thruster_mid = 410
-thruster_min = 410-(410*.75)
+thruster_min = 220
 
 
 
@@ -65,7 +65,7 @@ armLRChannel         = 15
 camUDChannel         = 0
 
 LeftMotorChannel     = 5
-RightMotorChannel    = 16
+RightMotorChannel    = 6
 VerticalMotorChannel = 7
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -75,7 +75,6 @@ VerticalMotorChannel = 7
 MLeftValue = thruster_mid
 MRightValue = thruster_mid
 MVerticalValue = thruster_mid
-MHorizontalValue = thruster_mid
 
 # Write Servo's to Default
 clawUDPosition    = wrist_mid
@@ -90,8 +89,8 @@ OGArmLRPosition     = arm_mid
 
 # Should already be in this position
 pwm.set_pwm(LeftMotorChannel,     0, MLeftValue)
-pwm.set_pwm(RightMotorChannel,    0, MRightValue)
 pwm.set_pwm(VerticalMotorChannel, 0, MVerticalValue)
+pwm.set_pwm(RightMotorChannel,    0, MRightValue)
 
 pwm.set_pwm(clawUDChannel,    0, clawUDPosition)
 pwm.set_pwm(clawGraspChannel, 0, clawGraspPosition)
@@ -117,20 +116,20 @@ while running:
     MLeftValue = int(rData[:3])
     MRightValue = int(rData[3:6])
     MVerticalValue = int(rData[6:9])
-    MHorizontalValue = int(rData[9:12])
 
-    clawUDPosition = int(rData[12:15])
-    armLRPosition = int(rData[15:18])
-    clawGraspPosition = int(rData[18:21])
-    camUDPosition = int(rData[21:24])
-    sensorRequested = int(rData[24:25])
+    clawUDPosition = int(rData[9:12])
+    armLRPosition = int(rData[12:15])
+    clawGraspPosition = int(rData[15:18])
+    camUDPosition = int(rData[18:21])
+    sensorRequested = int(rData[21:22])
 
-    print(str(armLRPosition))
+    print(str(MVerticalValue))
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Read and Prepare Sensor data (Code from https://www.controleverything.com/content/Pressure?sku=MS5837-30BA01_I2CS#tabs-0-product_tabset-2)
 
     if sensorRequested:
+
         # Read 12 bytes of calibration data
         # Read pressure sensitivity
         data = bus.read_i2c_block_data(0x76, 0xA2, 2)
@@ -160,7 +159,7 @@ while running:
         #		0x40(64)	Pressure conversion(OSR = 256) command
         bus.write_byte(0x76, 0x40)
 
-        time.sleep(0.5)
+        sleep(0.5)
 
         # Read digital pressure value
         # Read data back from 0x00(0), 3 bytes
@@ -172,7 +171,7 @@ while running:
         #		0x50(64)	Temperature conversion(OSR = 256) command
         bus.write_byte(0x76, 0x50)
 
-        time.sleep(0.5)
+        sleep(0.5)
 
         # Read digital temperature value
         # Read data back from 0x00(0), 3 bytes
@@ -203,19 +202,25 @@ while running:
         TEMP = TEMP - T2
         OFF2 = OFF - OFF2
         SENS2 = SENS - SENS2
-        pressure = ((((D1 * SENS2) / 2097152) - OFF2) / 8192) / 10.0
         
+        pressure = ((((D1 * SENS2) / 2097152) - OFF2) / 8192) / 10.0
         mDepth = pressure-10.36080766
         cTemp = TEMP / 100.0
-        sensorRequested=0
+        
 	
-	""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Send Data to Surface if Requested
+    if sensorRequested:
+        sData = str(cTemp)[:5]+"_"+str(mDepth)[:5]+"$"+str(pressure) # Need Character amounts
+        sData = sData.encode('utf-8')
 
-    sData = str(cTemp)+"_"+str(mDepth) # Need Character amounts
-    sData = sData.encode('utf-8')
+        sock.sendto(sData, addr)
+        sensorRequested=0
+    else:
+        sData = "00000000000" # Need Character amounts
+        sData = sData.encode('utf-8')
 
-    sock.sendto(sData, addr)
+        sock.sendto(sData, addr)    
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Write to motors & servos
@@ -227,23 +232,22 @@ while running:
     # Limits & writes M_Values to ESC's!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if MLeftValue > thruster_mid:
             pwm.set_pwm(LeftMotorChannel, 0, min(int(MLeftValue), int(motorMax)))
-    elif MLeftValue < thruster_mid:
-        
-            pwm.set_pwm(LeftMotorChannel, 0, max(int(MLeftValue), int(motorMax)))
+    elif MLeftValue < thruster_mid:        
+            pwm.set_pwm(LeftMotorChannel, 0, max(int(MLeftValue), int(motorMin)))
     else:
             pwm.set_pwm(LeftMotorChannel, 0, int(MLeftValue))
 
     if MRightValue > thruster_mid:
             pwm.set_pwm(RightMotorChannel, 0, min(int(MRightValue), int(motorMax)))
     elif MRightValue < thruster_mid:
-            pwm.set_pwm(RightMotorChannel, 0, max(int(MRightValue), int(motorMax)))
+            pwm.set_pwm(RightMotorChannel, 0, max(int(MRightValue), int(motorMin)))
     else:
             pwm.set_pwm(RightMotorChannel, 0, int(MRightValue))
 
     if MVerticalValue > thruster_mid:
             pwm.set_pwm(VerticalMotorChannel, 0, min(int(MVerticalValue), int(motorMax)))
     elif MVerticalValue < thruster_mid:
-            pwm.set_pwm(VerticalMotorChannel, 0, max(int(MVerticalValue), int(motorMax)))
+            pwm.set_pwm(VerticalMotorChannel, 0, max(int(MVerticalValue), int(motorMin)))
     else:
             pwm.set_pwm(VerticalMotorChannel, 0, int(MVerticalValue))
 

@@ -27,7 +27,7 @@ while binding:
 
 # Get I2C bus
 bus = smbus.SMBus(1)
-time.sleep(.5)
+sleep(.5)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Set up PWM Hat
@@ -59,14 +59,14 @@ thruster_min = 410-(410*.75)
 # Set frequency to 60hz, good for servos. (May need to change for motors?)
 pwm.set_pwm_freq(60)
  
-clawUDChannel = 1
-clawGraspChannel = 0
-armLRChannel = 2
-camUDChannel = 3
+clawUDChannel        = 14
+clawGraspChannel     = 13
+armLRChannel         = 15
+camUDChannel         = 0
 
-LeftMotorChannel = 13
-RightMotorChannel = 14
-VerticalMotorChannel = 15
+LeftMotorChannel     = 5
+RightMotorChannel    = 16
+VerticalMotorChannel = 7
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Global Variables for Main Loop

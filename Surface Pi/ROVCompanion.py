@@ -5,7 +5,7 @@ from time import sleep
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Define Functions
  
-def changeInterval(x, in_min, in_max, out_min, out_max):     # Identical to Arduino map() function
+def changeInterval(x, in_min, in_max, out_min, out_max):     # Inspired by the Arduino map() function
         return int( (x-in_min) * (out_max-out_min) // (in_max-in_min) + out_min )
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -136,35 +136,33 @@ throttle = 0     # Define throttle to start at 0.
 
 """"""
 
-running = True   # Main loop ends when this = False.
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Data to be sent to ROV
 
 # Define Motor Values at default (in mS).
 
 universal_thruster_mid = 410
-thruster_max     = 410+256
-thruster_min     = 410-256
+thruster_max     = 410+(256*.75)
+thruster_min     = 410-(256*.75)
 MLeftValue       = universal_thruster_mid
 MRightValue      = universal_thruster_mid
 MVerticalValue   = universal_thruster_mid
 MHorizontalValue = universal_thruster_mid
 
 # Configure default servo pulse lengths
-wrist_mid   = 430  
-wrist_max  = 580
+wrist_mid = 430  
+wrist_max = 580
 wrist_min = 280
 
 claw_mid  = 335
-claw_max = 420
-claw_min = 250
+claw_max  = 420
+claw_min  = 250
 
 arm_mid   = 410
-arm_max  = 550
-arm_min = 270
+arm_max   = 550
+arm_min   = 270
 
-cam_max   = 430  # +-128 (Real cam mid, but treated like max)
+cam_max   = 430
 cam_min   = 300
 cam_mid   = 365
 
@@ -186,6 +184,7 @@ mDepth = 0.0
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
 
+running = True   # Main loop ends when this = False.
 while running:
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # Checks to see if the User has quit
@@ -241,8 +240,8 @@ while running:
 
             # Forward-Backward
             if a == 1:
-                valAxis = changeInterval(-joystick.get_axis(a), -1, 1, universal_thruster_mid - (256 * throttle), universal_thruster_mid + (256 * throttle))
-                MLeftValue = valAxis
+                valAxis = changeInterval(-joystick.get_axis(a), -1, 1, universal_thruster_mid - int(256 * throttle), universal_thruster_mid + int(256 * throttle))
+                MLeftValue = -valAxis
                 MRightValue = valAxis
 
             # Yaw
@@ -454,8 +453,6 @@ while running:
             valuesText.Print(screen, "Joystick is DISCONNECTED")
             valuesText.newLine()
             valuesText.changeColor(BLACK)
-
-    
 
 
     pygame.display.update()

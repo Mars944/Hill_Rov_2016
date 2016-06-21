@@ -177,9 +177,10 @@ armLRPosition     = arm_mid
 sensorRequested = "0"
 
 # Define Sensor Data at default
-cTemp    = "??.??"
-mDepth   = "??.??"
-pressure = "??.??"
+cTemp      = "??.??"
+mDepth     = "??.??"
+pressure   = "??.??"
+dylanDepth = "??.??"
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Main Loop
@@ -212,11 +213,12 @@ while running:
     if joystickConnected:
         numAxes = joystick.get_numaxes()  # Gets number of axis on Joystick
 
-        # Checks each axis on the Joystick
+        # Checks each axis on the Joystick & hat
         for a in range(numAxes - 1):
 
-            # throttle = int([0%, 100%])
-            throttle = changeInterval(-joystick.get_axis(3), -1, 1, 0, 100) / 100
+            # throttle = int([0%, 100%]) CHANGED [0%, 35%] IF ERROR IN USE, CHANGE BACK TO 100
+            throttle = changeInterval(-joystick.get_axis(3), -1, 1, 0, 35) / 100
+            throttle_Vertical = changeInterval(-joystick.get_axis(3), -1, 1, 39, 74) / 100
 
             """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
             # Band-Aid to fix Throttle defaulting at 50%.
@@ -249,33 +251,35 @@ while running:
                 yawChange = joystick.get_axis(a)  # [-1 to 1]
                 yaw = yawChange * 128 * throttle  # 128 can equal up to 256
 
-                # If MRightValue is Increasing
+                # If Inverted, Change MLeft -> MRight & MRight -> Mleft only under #Yaw. 
+                # If MRightValue is Increasing (NOW LEFT)
                 if yawChange < 0:
-                    if MRightValue + yaw > universal_thruster_mid+256:  # Checks to see if new MRightValue > value cap. If so, Offputs change to MLeftValue
+                    if MLeftValue + yaw > universal_thruster_mid+256:  # Checks to see if new MLeftValue > value cap. If so, Offputs change to MRightValue
+                        MLeftValue = universal_thruster_mid+256
+                        MRightValue = MRightValue - yaw - (MLeftValue + yaw) + universal_thruster_mid+256
+                    elif MLeftValue - yaw < universal_thruster_mid-256:  # Checks to see if new MrightValue < minimum value cap. If so, Offputs change to MLeftValue
+                        MRightValue = universal_thruster_mid-256
+                        MLeftValue = MLeftValue + yaw + (MRightValue - yaw) - universal_thruster_mid-256
+                    else:
+                        MRightValue += yaw
+                        MLeftValue -= yaw
+
+                # If MLeftValue is Increasing. (NOW RIGHT)
+                elif yawChange > 0:
+                    if MRightValue + yaw > universal_thruster_mid+256:  # Checks to see if new MRightValue > 1900. If so, Offputs change to MLeftValue
                         MRightValue = universal_thruster_mid+256
                         MLeftValue = MLeftValue - yaw - (MRightValue + yaw) + universal_thruster_mid+256
-                    elif MRightValue - yaw < universal_thruster_mid-256:  # Checks to see if new MLeftValue < minimum value cap. If so, Offputs change to MRightValue
+                    elif MLeftValue - yaw < universal_thruster_mid-256:  # Checks to see if new MLeftValue < 1100. If so, Offputs change to MRightValue
                         MLeftValue = universal_thruster_mid-256
                         MRightValue = MRightValue + yaw + (MLeftValue - yaw) - universal_thruster_mid-256
                     else:
-                        MLeftValue += yaw
-                        MRightValue -= yaw
+                        MRightValue += yaw
+                        MLeftValue -= yaw
 
-                # If MLeftValue is Increasing.
-                elif yawChange > 0:
-                    if MLeftValue + yaw > universal_thruster_mid+256:  # Checks to see if new MLeftValue > 1900. If so, Offputs change to MRightValue
-                        MLeftValue = universal_thruster_mid+256
-                        MRightValue = MRightValue - yaw - (MLeftValue + yaw) + universal_thruster_mid+256
-                    elif MRightValue - yaw < universal_thruster_mid-256:  # Checks to see if new MRightValue < 1100. If so, Offputs change to MLeftValue
-                        MRightValue = universal_thruster_mid-256
-                        MLeftValue = MVerticalValue + yaw + (MRightValue - yaw) - universal_thruster_mid-256
-                    else:
-                        MLeftValue += yaw
-                        MRightValue -= yaw
-
+        controlSchemeTwoOn = False  # If True, Vertical motor values are incremented instead of on/off.
         vertRunning = True  # Used to test if the Vertical Motor buttons are being pressed.
         # Checks Button Values
-        for b in range(9):
+        for b in range(11):
             
             # Thumb (2) Button
             if b == 1:  # Close Claw
@@ -289,8 +293,8 @@ while running:
                     if clawGraspPosition > claw_min:
                         clawGraspPosition -= 1
 
-            # 3 Button
-            elif b == 2:  # Move Arm Right
+            # 5 Button
+            elif b == 4:  # Move Arm Right
                 if joystick.get_button(b) == 1:
                     if armLRPosition < arm_max:
                         armLRPosition += 1
@@ -301,8 +305,8 @@ while running:
                     if clawUDPosition < wrist_max:
                         clawUDPosition += 1
 
-            # 5 Button
-            elif b == 4:  # Move Arm Left
+            # 3 Button
+            elif b == 2:  # Move Arm Left
                 if joystick.get_button(b) == 1:
                     if armLRPosition > arm_min:
                         armLRPosition -= 1
@@ -315,23 +319,50 @@ while running:
 
             # 7 Button
             elif b == 6:  # Toggle Vertical Motor Negative
-                if joystick.get_button(b) == 1:
-                    MVerticalValue = universal_thruster_mid-(256*throttle)
-                else:
-                    vertRunning = False	 
+	            if not controlSchemeTwoOn:
+	                if joystick.get_button(b) == 1:
+	                    if throttle = 0:
+	                    	MVerticalValue = 410
+	                	else:
+	                		MVerticalValue = universal_thruster_mid-(256*throttle_Vertical)  #universal_thruster_mid-(256*throttle)
+	                else:
+	                    vertRunning = False
+	            else:
+	            	if joystick.get_button(b) == 1:
+		            	MVerticalValue-=1	 
 
             # 8 Button
             elif b == 7:  # Toggle Vertical Motor Positive
-                if joystick.get_button(b) == 1:
-                    MVerticalValue = universal_thruster_mid+(256*throttle)
-                else:
-                    if not vertRunning:
-                        MVerticalValue = universal_thruster_mid
+                if not controlSchemeTwoOn:
+	                if joystick.get_button(b) == 1:
+    	                if throttle == 0:
+    	                	MVerticalValue = 410
+    	                else:
+    	                	MVerticalValue = universal_thruster_mid+(256*throttle_Vertical)  #universal_thruster_mid+(256*throttle)
+        	        else:
+            	        if not vertRunning:
+                	        MVerticalValue = universal_thruster_mid
+               	else:
+               		if joystick.get_button(b) == 1:
+               			MVerticalValue += 1
 
+            # 10 Button
+            elif b == 8:
+                if joystick.get_button(b+1) == 1:
+                    camUDPosition = 365
+            
             # 11 Button
-            elif b == 8 and sensorRequested == "0":  # Request Sensor Data
-                if joystick.get_button(b+2) == 1:
+            elif b == 9 and sensorRequested == "0":  # Request Sensor Data
+                if joystick.get_button(b+1) == 1:
                     sensorRequested = "1"
+
+			# 12 Button
+			elif b == 10:
+				if joystick.get_button(b+1) == 1:
+					if controlSchemeTwoOn:
+						controlSchemeTwoOn = False
+					else:
+						controlSchemeTwoOn = True                    
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # If no joysticks are detected, try to reconnect
@@ -378,6 +409,7 @@ while running:
 	    cTemp    = rData[:rData.index("_")]
 	    mDepth   = rData[rData.index("_")+1:rData.index("$")]
 	    pressure = rData[rData.index("$")+1:]
+	    dylanDepth = changeInterval(mDepth, 988, 1299, 0, 12)
 	    sensorRequested = "0"
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -455,6 +487,8 @@ while running:
         valuesText.Print(screen, "Temperature: "+ str(cTemp) + "°C")
         valuesText.newLine()
         valuesText.Print(screen, "Depth: "+ str(mDepth) + " Meters")
+        valuesText.newLine()
+        valuesText.Print(screen, "D's Depth: "+ str(dylanDepth) + " Meters")
         valuesText.newLine()
         valuesText.Print(screen, "Pressure: "+ str(pressure) + " mbar")
         valuesText.newLine()
